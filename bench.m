@@ -1,6 +1,7 @@
-N = 4096;
-n = 1;
-vec   = repmat(10:2000,[1, 10]);
+N = 1024;
+n = 1000;
+vec   = repmat(10:999,[1, 10]);
+vec = 1:1024;
 vec_c = vec - 1;
 b = rand(N,N) + 1j*rand(N,N);
 [xx,yy] = meshgrid(1:N,1:N);

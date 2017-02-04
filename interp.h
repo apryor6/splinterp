@@ -63,8 +63,10 @@ void interp2_cx(const T* const data_r, const T* const data_i, const size_t& nrow
             int y_1 = (int) std::floor(y[i]);
             int y_2 = y_1 + 1;
 
-            if (x_1 == (nrows-1) )   { x_2 = x_1; x_1 -=1;}
-            if (y_1 == (ncols-1) )   { y_2 = y_1; y_1 -=1;}
+//             if (x_1 == (nrows-1) )   { x_2 = x_1; x_1 -=1;}
+//             if (y_1 == (ncols-1) )   { y_2 = y_1; y_1 -=1;}
+            if (x_1 == (nrows-1) )   { x_2 -= 1; x_1 -=1;}
+            if (y_1 == (ncols-1) )   { y_2 -= 1; y_1 -=1;}
             
             if (x_1 < 0 | x_2 > (nrows - 1) |  y_1 < 0 | y_2 > (ncols -1)){
                 result_r[i] = 0;

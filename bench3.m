@@ -1,5 +1,7 @@
 % Ns = [2.^(4:9)]
+clear
 Ns = [25:25:400]
+Ns = 512;
 count=1;
 for N = Ns;
     N
@@ -28,4 +30,4 @@ for N = Ns;
     count = count+1;
 end
 sum(abs(a(:)-a1(:)))
-ratios = t1./t2;
+ratios = t1./t2
