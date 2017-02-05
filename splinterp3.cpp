@@ -22,7 +22,12 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         const mwSize nlayers = dims[2];
         const size_t ncols_out = mxGetN(prhs[1]);
         const size_t nrows_out = mxGetM(prhs[1]);
-        plhs[0] = mxCreateDoubleMatrix(nrows_out, ncols_out, mxCOMPLEX);
+        
+        const mwSize ndims_out  = mxGetNumberOfDimensions(prhs[1]);
+        const mwSize *dims_out  = mxGetDimensions(prhs[1]);
+        size_t npoints = 1;
+        for (auto i = 0; i < ndims_out; ++i) npoints*=dims_out[i];
+        plhs[0] = mxCreateNumericArray(ndims_out, dims_out, mxDOUBLE_CLASS, mxCOMPLEX);
 //
         Matrix_r = mxGetPr(prhs[0]);
         Matrix_i = mxGetPi(prhs[0]);
@@ -31,7 +36,6 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         z        = mxGetPr(prhs[3]);
         result_r = mxGetPr(plhs[0]);
         result_i = mxGetPi(plhs[0]);
-        const size_t npoints = nrows_out * ncols_out;
       
         interp3_F_cx<double>(Matrix_r, Matrix_i, nrows, ncols, nlayers, x, y, z, npoints, result_r, result_i);
 
@@ -50,14 +54,18 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         const mwSize nlayers = dims[2];
         const size_t ncols_out = mxGetN(prhs[1]);
         const size_t nrows_out = mxGetM(prhs[1]);
-        plhs[0] = mxCreateDoubleMatrix(nrows_out, ncols_out, mxCOMPLEX);
 
+        const mwSize ndims_out  = mxGetNumberOfDimensions(prhs[1]);
+        const mwSize *dims_out  = mxGetDimensions(prhs[1]);
+        size_t npoints = 1;
+        for (auto i = 0; i < ndims_out; ++i) npoints*=dims_out[i];
+        plhs[0] = mxCreateNumericArray(ndims_out, dims_out, mxDOUBLE_CLASS, mxCOMPLEX);
+        
         Matrix = mxGetPr(prhs[0]);
         y        = mxGetPr(prhs[1]);
         x        = mxGetPr(prhs[2]);
         z        = mxGetPr(prhs[3]);
         result = mxGetPr(plhs[0]);
-        const size_t npoints = nrows_out * ncols_out;
      
         interp3_F<double>(Matrix, nrows, ncols, nlayers, x, y, z, npoints, result);
 

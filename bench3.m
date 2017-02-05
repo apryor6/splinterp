@@ -1,7 +1,7 @@
 % Ns = [2.^(4:9)]
 clear
 Ns = [25:25:400]
-Ns = 128;
+Ns = 512;
 count=1;
 for N = Ns;
     N

@@ -17,8 +17,12 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         
         size_t nrows   = mxGetN(prhs[0]);
         size_t ncols   = mxGetM(prhs[0]);
-        size_t npoints = mxGetN(prhs[1]);
-        plhs[0] = mxCreateDoubleMatrix(npoints, 1, mxCOMPLEX);
+        
+        const mwSize ndims  = mxGetNumberOfDimensions(prhs[1]);
+        const mwSize *dims  = mxGetDimensions(prhs[1]);
+        size_t npoints = 1;
+        for (auto i = 0; i < ndims; ++i) npoints*=dims[i];
+        plhs[0] = mxCreateNumericArray(ndims, dims, mxDOUBLE_CLASS, mxCOMPLEX);
 
         Matrix_r = mxGetPr(prhs[0]);
         Matrix_i = mxGetPi(prhs[0]);
@@ -38,8 +42,12 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         
         size_t nrows   = mxGetN(prhs[0]);
         size_t ncols   = mxGetM(prhs[0]);
-        size_t npoints = mxGetN(prhs[1]);
-        plhs[0] = mxCreateDoubleMatrix(npoints, 1, mxREAL);
+        
+        const mwSize ndims  = mxGetNumberOfDimensions(prhs[1]);
+        const mwSize *dims  = mxGetDimensions(prhs[1]);
+        size_t npoints = 1;
+        for (auto i = 0; i < ndims; ++i) npoints*=dims[i];
+        plhs[0] = mxCreateNumericArray(ndims, dims, mxDOUBLE_CLASS, mxCOMPLEX);
 
         Matrix = mxGetPr(prhs[0]);
         y      = mxGetPr(prhs[1]);

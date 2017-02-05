@@ -73,7 +73,7 @@ namespace splinter{
     }
     
     template <typename T>
-    void interp2_F_cx(const T* const data,
+    void interp2_F(const T* const data,
                       const size_t& nrows, const size_t& ncols,
                       const double* const x, const double* const y,
                       const size_t& N, T* result){
