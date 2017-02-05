@@ -9,11 +9,74 @@
 #include <cmath>
 #include "mex.h"
 
+
 // Interpolate position x,y from 2D array stored in data, which is assumed to lie on an integer coordinate system.
 // Values of x and y that lie outside of the dimensions of data are set to 0.
 namespace splinter{
+        
     template <typename T>
-    void interp2_F(const T* const data, const size_t& nrows, const size_t& ncols, const double* const x, const double* const y,const size_t& N, T* result){
+    void interp1_F(const T* const data, 
+                   const size_t& nrows,
+                   const double* const x,
+                   const size_t& N, T* result){
+
+        for (auto i = 0; i < N; ++i) { 
+           // get coordinates of bounding grid locations
+           int x_1 = (int) std::floor(x[i]);
+           // handle special case where x is the last element
+           if (x_1 == (nrows-1)){x_1 -= 1;}
+           // return 0 for target values that are out of bounds
+              if (x_1 < 0 | (x_1+1) > (nrows - 1)){
+                result[i] = 0; 
+            } 
+            else {
+                // get the array values
+                const T& f_1 = data[x_1];
+                const T& f_2 = data[x_1+1];
+                // compute weights
+               T w_x1 = x_1+1 - x[i];
+               result[i] = f_1 * w_x1 +f_2 - f_2*w_x1;
+
+            }
+        }
+    }
+
+    template <typename T>
+    void interp1_F_cx(const T* const data_r, const T* const data_i,
+                      const size_t& nrows, const double* const x, 
+                      const size_t& N, T* result_r, T* result_i){
+
+        for (auto i = 0; i < N; ++i) { 
+           // get coordinates of bounding grid locations
+           int x_1 = (int) std::floor(x[i]);
+           // handle special case where x is the last element
+           if (x_1 == (nrows-1)){x_1 -= 1;}
+           // return 0 for target values that are out of bounds
+              if (x_1 < 0 | (x_1+1) > (nrows - 1)){
+                result_r[i] = 0;
+                result_i[i] = 0;
+            } 
+            else {
+                // get the array values
+               const T& f_1_r = data_r[x_1];
+               const T& f_2_r = data_r[x_1+1];
+                // compute weights
+               T w_x1 = x_1+1 - x[i];
+               result_r[i] = f_1_r * w_x1 +f_2_r - f_2_r*w_x1;
+               
+               const T& f_1_i = data_i[x_1];
+               const T& f_2_i = data_i[x_1+1];
+               result_i[i] = f_1_i * w_x1 +f_2_i - f_2_i*w_x1;
+
+            }
+        }
+    }
+    
+    template <typename T>
+    void interp2_F_cx(const T* const data,
+                      const size_t& nrows, const size_t& ncols,
+                      const double* const x, const double* const y,
+                      const size_t& N, T* result){
 
         for (auto i = 0; i < N; ++i) {
 
@@ -56,7 +119,10 @@ namespace splinter{
 
 
     template <typename T>
-    void interp2_F_cx(const T* const data_r, const T* const data_i, const size_t& nrows, const size_t& ncols, const double* const x, const double* const y,const size_t& N, T* result_r, T* result_i){
+    void interp2_F_cx(const T* const data_r, const T* const data_i,
+                      const size_t& nrows, const size_t& ncols, 
+                      const double* const x, const double* const y,
+                      const size_t& N, T* result_r, T* result_i){
 
         for (auto i = 0; i < N; ++i) {
 
@@ -109,10 +175,13 @@ namespace splinter{
 
 
     template <typename T>
-    void interp3_F(const T* data, const size_t& nrows, const size_t& ncols, const size_t& nlayers, const double* x, const double* y, const double* z, const size_t N, T* result){
+    void interp3_F(const T* data, 
+                   const size_t& nrows, const size_t& ncols, const size_t& nlayers,
+                   const double* x, const double* y, const double* z, 
+                   const size_t N, T* result){
+        
         // Assumes Fortran style ordering for data
         for (auto i = 0; i < N; ++i) {
-            // Computer lower Z plane
 
             // get coordinates of bounding grid locations
             int x_1 = (int) std::floor(x[i]);
@@ -181,13 +250,12 @@ namespace splinter{
         }
     }
 
-    
-    
+        
     template <typename T>
-    void interp3_F_cx(const T* data_r,  const T * data_i, 
-            const size_t& nrows, const size_t& ncols, const size_t& nlayers, 
-            const double* x, const double* y, const double* z, const size_t N, 
-            T* result_r, T* result_i){
+    void interp3_F_cx(const T* const data_r,  const T* const data_i, 
+                      const size_t& nrows, const size_t& ncols, const size_t& nlayers, 
+                      const double* const x, const double* const y, const double* const z, const size_t N, 
+                      T* result_r, T* result_i){
         
         // Fortran style ordering for trilinear interpolation of complex data
         for (auto i = 0; i < N; ++i) {
@@ -231,8 +299,6 @@ namespace splinter{
                     const T& f_12_1 = data_r[z_stride + y_2_stride + x_1];
                     const T& f_21_1 = data_r[z_stride + y_1_stride + x_2];
                     const T& f_22_1 = data_r[z_stride + y_2_stride + x_2];
-
-
 
                     double a_1, b_1;
                     a_1 = f_11_1 * w_x1 + f_21_1 * w_x2;
@@ -294,14 +360,9 @@ namespace splinter{
                     T w_z2 = z[i] - z_1;
 
                    result_i[i] = F_1 * w_z1 + F_2*w_z2;
-                }
-                
-                
-                
+                }                        
             }
         }
     }
-
-    
 }
 #endif //SPLINTER_H
