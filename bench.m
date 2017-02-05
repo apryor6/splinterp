@@ -16,7 +16,7 @@ t1 = toc
 
 tic
 for i = 1:n
-    c2 = accel_interp2(b,vec_c,vec_c);
+    c2 = splinterp2(b,vec_c,vec_c);
 end
 t2 = toc
 t1./t2

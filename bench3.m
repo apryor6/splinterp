@@ -22,7 +22,7 @@ for N = Ns;
 
     tic
     for it = 1:15
-    a1 = accel_interp3(b,xx_oc,yy_oc,zz_oc);
+    a1 = splinterp3(b,xx_oc,yy_oc,zz_oc);
     end
     t2(count) = toc;
 
