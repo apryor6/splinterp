@@ -1,8 +1,8 @@
 # splinter
-Splinter is a fast C++ template library for parallel calculation of linear, bilinear, and trilinear interpolation. Splinter also contains MEX extension files that allow its routines to be called from MATLAB/Octave.
+Splinter is a fast C++ template library for parallel calculation of linear, bilinear, and trilinear interpolation from data sampled on an integer grid. Splinter also contains MEX extension files that allow its routines to be called from MATLAB/Octave.
 
 ### Usage
-Splinter consists of a single header file `splinter.h`, which contains a number of different functions for various types of linear interpolation. Each interpolation function name is of the form `interp#[\_cx][\_F]` where # is either 1,2, or 3, indicating linear, bilinear, or trilinear interpolation, respectively. The addition of "`_cx`" indicates that it is intended for complex-valued inputs. The addition of `_F` indicate the arrays are assumed to be in column-major (Fortran) order. There are also a number of helper functions for running interpolation schemes in parallel, and the number of threads used is determined by the NUM_THREADS macro. To use a different number of threads, either edit this value in `splinter.h` and recompile, or alternatively you can define the value with the -D flag for g++. For example a simple test program
+Splinter (Strided Parallel Linear INTERpolation) consists of a single header file, `splinter.h`, which contains a number of different functions for various types of linear interpolation. Each interpolation function name is of the form `interp#[\_cx][\_F]` where # is either 1,2, or 3, indicating linear, bilinear, or trilinear interpolation, respectively. The addition of "`_cx`" indicates that it is intended for complex-valued inputs. The addition of `_F` indicate the arrays are assumed to be in column-major (Fortran) order. There are also a number of helper functions for running interpolation schemes in parallel, and the number of threads used is determined by the NUM_THREADS macro. To use a different number of threads, either edit this value in `splinter.h` and recompile, or alternatively you can define the value with the -D flag for g++. For example a simple test program
 ~~~ c++
 // test.cpp
 #include "splinter.h"
@@ -51,4 +51,4 @@ can be replaced by
 
 Note that splinter assumes the coordinates of the data are an integer grid and thus does not support the X, Y, Z parameters to the MATLAB equivalents.
 
-To use these functions, simply download the code and run `compile_mex_script.m`. If you have not used MEX before, you may need to run `mex -setup` first to configure your C compiler. More information can be foud [here](https://www.mathworks.com/help/matlab/ref/mex.html) if you run into trouble.
+To use these functions, simply download the code and compile by running `compile_mex_script.m`. If you receive a "MEX completed successfully", then the splinterp functions are now accessible from within MATLAB (you may need to add the directory where they exist to your path). If you have not used MEX before, you may need to run `mex -setup` first to configure your C compiler. More information can be foud [here](https://www.mathworks.com/help/matlab/ref/mex.html) if you run into trouble.
