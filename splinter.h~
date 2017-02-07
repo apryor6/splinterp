@@ -14,9 +14,7 @@
 #ifndef NUM_THREADS
 #define NUM_THREADS 300
 #endif
-#ifndef NUM_THREADS
 #define SERIAL_LIMIT 2047
-#endif
 // Interpolate position x,y from 2D array stored in data, which is assumed to lie on an integer coordinate system.
 // Values of x and y that lie outside of the dimensions of data are set to 0.
 namespace splinter{
@@ -41,7 +39,7 @@ namespace splinter{
             f(data,nrows,x,N,result,origin_offset);
         }
         else{ // launch multiple threads
-            unsigned long long THREAD_CHUNK_SIZE = N / NUM_THREADS;
+            unsigned long long THREAD_CHUNK_SIZE = (N + NUM_THREADS - 1)  / NUM_THREADS;
 
             std::vector<std::thread> workers;
             workers.reserve(NUM_THREADS);
@@ -51,13 +49,19 @@ namespace splinter{
             for ( i = 0; i < NUM_THREADS; ++i){
                 
                 if ( i == (NUM_THREADS-1) ){
+                    mexPrintf("Last thread\n"
                     workers.emplace_back(std::thread(f,data,nrows,tmp_x,(size_t)(x+N-tmp_x),tmp_result,origin_offset));
                     break;
                 }
                 else{
                     workers.emplace_back( std::thread(f,data,nrows,tmp_x,THREAD_CHUNK_SIZE,tmp_result,origin_offset) );
                 }
-
+//                 if ( ((i+1)*THREAD_CHUNK_SIZE - 1) < N){
+//                 workers.emplace_back( std::thread(f,data,nrows,tmp_x,THREAD_CHUNK_SIZE,tmp_result,origin_offset) );
+//                 }
+//                 else{
+//                     workers.emplace_back(std::thread(f,data,nrows,tmp_x,(size_t)(x+N-tmp_x),tmp_result,origin_offset));
+//                 }
                 tmp_x+=THREAD_CHUNK_SIZE;
                 tmp_result+=THREAD_CHUNK_SIZE;
             }
@@ -88,7 +92,7 @@ namespace splinter{
             f(data_r,data_i,nrows,x,N,result_r,result_i,origin_offset);
         }
         else{// launch multiple threads
-            unsigned long long THREAD_CHUNK_SIZE = N / NUM_THREADS;
+            unsigned long long THREAD_CHUNK_SIZE = (N + NUM_THREADS - 1)  / NUM_THREADS;
 
             std::vector<std::thread> workers;
             workers.reserve(NUM_THREADS);
@@ -96,16 +100,14 @@ namespace splinter{
             T *tmp_result_r = result_r;
             T *tmp_result_i = result_i;
             int i;
-            for ( i = 0; i < NUM_THREADS; ++i){    
-                
-                if ( i == (NUM_THREADS - 1) ){
-                    workers.emplace_back(std::thread(f,data_r,data_i,nrows,tmp_x,(size_t)(x+N-tmp_x),tmp_result_r,tmp_result_i,origin_offset));
-                    break;
+            for ( i = 0; i < NUM_THREADS; ++i){
+
+                if ( ((i+1)*THREAD_CHUNK_SIZE - 1) < N){
+                workers.emplace_back( std::thread(f,data_r,data_i,nrows,tmp_x,THREAD_CHUNK_SIZE,tmp_result_r,tmp_result_i,origin_offset) );
                 }
                 else{
-                    workers.emplace_back( std::thread(f,data_r,data_i,nrows,tmp_x,THREAD_CHUNK_SIZE,tmp_result_r,tmp_result_i,origin_offset) );
+                    workers.emplace_back(std::thread(f,data_r,data_i,nrows,tmp_x,(size_t)(x+N-tmp_x),tmp_result_r,tmp_result_i,origin_offset));
                 }
-
                 tmp_x+=THREAD_CHUNK_SIZE;
                 tmp_result_r+=THREAD_CHUNK_SIZE;
                 tmp_result_i+=THREAD_CHUNK_SIZE;
@@ -140,7 +142,7 @@ namespace splinter{
             f(data,nrows,ncols,x,y,N,result,origin_offset);
         }
         else{ // launch multiple threads
-            unsigned long long THREAD_CHUNK_SIZE = N / NUM_THREADS;
+            unsigned long long THREAD_CHUNK_SIZE = (N + NUM_THREADS - 1)  / NUM_THREADS;
 
             std::vector<std::thread> workers;
             workers.reserve(NUM_THREADS);
@@ -150,52 +152,54 @@ namespace splinter{
             int i;
             for ( i = 0; i < NUM_THREADS; ++i){
 
-                if ( i == (NUM_THREADS - 1) ){
-                    workers.emplace_back(std::thread(f,data,nrows,ncols,tmp_x,tmp_y,(size_t)(x+N-tmp_x),tmp_result,origin_offset));
-                    break;
+                if ( ((i+1)*THREAD_CHUNK_SIZE - 1) < N){
+                workers.emplace_back( std::thread(f,data,nrows,ncols,tmp_x,tmp_y,THREAD_CHUNK_SIZE,tmp_result,origin_offset) );
                 }
                 else{
-                    workers.emplace_back( std::thread(f,data,nrows,ncols,tmp_x,tmp_y,THREAD_CHUNK_SIZE,tmp_result,origin_offset) );
+                    workers.emplace_back(std::thread(f,data,nrows,ncols,tmp_x,tmp_y,(size_t)(x+N-tmp_x),tmp_result,origin_offset));
                 }
-                
                 tmp_x+=THREAD_CHUNK_SIZE;
                 tmp_y+=THREAD_CHUNK_SIZE;
                 tmp_result+=THREAD_CHUNK_SIZE;
             }
             for (auto& t:workers)t.join();
         }
+    
     };
     
     
     
     template <typename T>
     using func2D_cx = void(*)(const T* const, const T* const,
-                              const size_t&,
-                              const size_t&,
-                              const T* const,
-                              const T* const,
-                              const size_t&, T*, T*,
-                              const long long&);
+                         const size_t&,
+                         const size_t&,
+                         const T* const,
+                         const T* const,
+                         const size_t&, T*, T*,
+                         const long long&);
 
     template <typename T>
     void parallel_interp2_cx(func2D_cx<T> f, 
-                             const T* const data_r, 
-                             const T* const data_i,
-                             const size_t& nrows,
-                             const size_t& ncols,
-                             const T* const x,
-                             const T* const y,
-                             const size_t& N, 
-                             T* result_r,
-                             T* result_i,
-                             const long long& origin_offset){
+                          const T* const data_r, 
+                          const T* const data_i,
+                          const size_t& nrows,
+                          const size_t& ncols,
+                          const T* const x,
+                          const T* const y,
+                          const size_t& N, 
+                          T* result_r,
+                          T* result_i,
+                          const long long& origin_offset){
+            mexPrintf("N = %il\n",N);
 
         if ( N <= SERIAL_LIMIT){// for small numbers of elements just use 1 thread
             f(data_r,data_i,nrows,ncols,x,y,N,result_r,result_i,origin_offset);
+                        mexPrintf("Launched serial\n");
 
         }
         else{// launch multiple threads
-            unsigned long long THREAD_CHUNK_SIZE = N / NUM_THREADS;
+            unsigned long long THREAD_CHUNK_SIZE = (N + NUM_THREADS - 1)  / NUM_THREADS;
+            mexPrintf("THREAD_CHUNK_SIZE = %i\n",THREAD_CHUNK_SIZE);
             std::vector<std::thread> workers;
             workers.reserve(NUM_THREADS);
             const T *tmp_x = x;
@@ -205,14 +209,14 @@ namespace splinter{
             int i;
             for ( i = 0; i < NUM_THREADS; ++i){
 
-                if ( i == (NUM_THREADS - 1) ){
-                    workers.emplace_back(std::thread(f,data_r,data_i,nrows,ncols,tmp_x,tmp_y,(size_t)(x+N-tmp_x),tmp_result_r,tmp_result_i,origin_offset));
-                    break;
+                if ( i == (NUM_THREADS - 1) 
+                
+                if ( ((i+1)*THREAD_CHUNK_SIZE - 1) < N){
+//                 workers.emplace_back( std::thread(f,data_r,data_i,nrows,ncols,tmp_x,tmp_y,THREAD_CHUNK_SIZE,tmp_result_r,tmp_result_i,origin_offset) );
                 }
                 else{
-                    workers.emplace_back( std::thread(f,data_r,data_i,nrows,ncols,tmp_x,tmp_y,THREAD_CHUNK_SIZE,tmp_result_r,tmp_result_i,origin_offset) );
+//                     workers.emplace_back(std::thread(f,data_r,data_i,nrows,ncols,tmp_x,tmp_y,(size_t)(x+N-tmp_x),tmp_result_r,tmp_result_i,origin_offset));
                 }
-                
                 tmp_x+=THREAD_CHUNK_SIZE;
                 tmp_y+=THREAD_CHUNK_SIZE;
                 tmp_result_r+=THREAD_CHUNK_SIZE;
@@ -252,7 +256,7 @@ namespace splinter{
             f(data,nrows,ncols,nlayers,x,y,z,N,result,origin_offset);
         }
         else{ // launch multiple threads
-            unsigned long long THREAD_CHUNK_SIZE = N / NUM_THREADS;
+            unsigned long long THREAD_CHUNK_SIZE = (N + NUM_THREADS - 1)  / NUM_THREADS;
 
             std::vector<std::thread> workers;
             workers.reserve(NUM_THREADS);
@@ -263,14 +267,12 @@ namespace splinter{
             int i;
             for ( i = 0; i < NUM_THREADS; ++i){
 
-                if ( i == (NUM_THREADS - 1) ){
-                    workers.emplace_back(std::thread(f,data,nrows,ncols,nlayers,tmp_x,tmp_y,tmp_z,(size_t)(x+N-tmp_x),tmp_result,origin_offset));
-                    break;
+                if ( ((i+1)*THREAD_CHUNK_SIZE - 1) < N){
+                workers.emplace_back( std::thread(f,data,nrows,ncols,nlayers,tmp_x,tmp_y,tmp_z,THREAD_CHUNK_SIZE,tmp_result,origin_offset) );
                 }
                 else{
-                    workers.emplace_back( std::thread(f,data,nrows,ncols,nlayers,tmp_x,tmp_y,tmp_z,THREAD_CHUNK_SIZE,tmp_result,origin_offset) );
+                    workers.emplace_back(std::thread(f,data,nrows,ncols,nlayers,tmp_x,tmp_y,tmp_z,(size_t)(x+N-tmp_x),tmp_result,origin_offset));
                 }
-
                 tmp_x+=THREAD_CHUNK_SIZE;
                 tmp_y+=THREAD_CHUNK_SIZE;
                 tmp_result+=THREAD_CHUNK_SIZE;
@@ -294,24 +296,24 @@ namespace splinter{
 
     template <typename T>
     void parallel_interp3_cx(func3D_cx<T> f, 
-                             const T* const data_r, 
-                             const T* const data_i,
-                             const size_t& nrows,
-                             const size_t& ncols,
-                             const size_t& nlayers,
-                             const T* const x,
-                             const T* const y,
-                             const T* const z,
-                             const size_t& N, 
-                             T* result_r,
-                             T* result_i,
-                             const long long& origin_offset){
+                          const T* const data_r, 
+                          const T* const data_i,
+                          const size_t& nrows,
+                          const size_t& ncols,
+                          const size_t& nlayers,
+                          const T* const x,
+                          const T* const y,
+                          const T* const z,
+                          const size_t& N, 
+                          T* result_r,
+                          T* result_i,
+                          const long long& origin_offset){
 
         if ( N <= SERIAL_LIMIT){// for small numbers of elements just use 1 thread
             f(data_r,data_i,nrows,ncols,nlayers,x,y,z,N,result_r,result_i,origin_offset);
         }
         else{// launch multiple threads
-            unsigned long long THREAD_CHUNK_SIZE = N / NUM_THREADS;
+            unsigned long long THREAD_CHUNK_SIZE = (N + NUM_THREADS - 1)  / NUM_THREADS;
 
             std::vector<std::thread> workers;
             workers.reserve(NUM_THREADS);
@@ -323,15 +325,12 @@ namespace splinter{
             int i;
             for ( i = 0; i < NUM_THREADS; ++i){
 
-                if ( i == (NUM_THREADS - 1) ){
-                    workers.emplace_back(std::thread(f,data_r,data_i,nrows,ncols,nlayers,tmp_x,tmp_y,tmp_z,(size_t)(x+N-tmp_x),tmp_result_r,tmp_result_i,origin_offset));
-                    break;
+                if ( ((i+1)*THREAD_CHUNK_SIZE - 1) < N){
+                workers.emplace_back( std::thread(f,data_r,data_i,nrows,ncols,nlayers,tmp_x,tmp_y,tmp_z,THREAD_CHUNK_SIZE,tmp_result_r,tmp_result_i,origin_offset) );
                 }
                 else{
-                workers.emplace_back( std::thread(f,data_r,data_i,nrows,ncols,nlayers,tmp_x,tmp_y,tmp_z,THREAD_CHUNK_SIZE,tmp_result_r,tmp_result_i,origin_offset) );
-
+                    workers.emplace_back(std::thread(f,data_r,data_i,nrows,ncols,nlayers,tmp_x,tmp_y,tmp_z,(size_t)(x+N-tmp_x),tmp_result_r,tmp_result_i,origin_offset));
                 }
-
                 tmp_x+=THREAD_CHUNK_SIZE;
                 tmp_y+=THREAD_CHUNK_SIZE;
                 tmp_result_r+=THREAD_CHUNK_SIZE;

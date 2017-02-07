@@ -14,9 +14,8 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         double *result_r;
         double *result_i;
         
-        size_t nrows   = mxGetN(prhs[0]);
-        size_t ncols   = mxGetM(prhs[0]);
-        
+        size_t nrows   = mxGetM(prhs[0]);
+        size_t ncols   = mxGetN(prhs[0]);
         const mwSize ndims  = mxGetNumberOfDimensions(prhs[1]);
         const mwSize *dims  = mxGetDimensions(prhs[1]);
         size_t npoints = 1;
@@ -29,8 +28,6 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         x        = mxGetPr(prhs[2]);
         result_r = mxGetPr(plhs[0]);
         result_i = mxGetPi(plhs[0]);
-        
-//         splinter::interp2_F_cx<double>(Matrix_r,Matrix_i, nrows, ncols, x, y, npoints, result_r, result_i,1);
         splinter::parallel_interp2_cx(splinter::interp2_F_cx<double>,Matrix_r,Matrix_i, nrows, ncols, x, y, npoints, result_r, result_i, 1);
 
     } else {
@@ -40,8 +37,8 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         double const *y;
         double *result;
         
-        size_t nrows   = mxGetN(prhs[0]);
-        size_t ncols   = mxGetM(prhs[0]);
+        size_t nrows   = mxGetM(prhs[0]);
+        size_t ncols   = mxGetN(prhs[0]);
         
         const mwSize ndims  = mxGetNumberOfDimensions(prhs[1]);
         const mwSize *dims  = mxGetDimensions(prhs[1]);
@@ -53,8 +50,6 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         y      = mxGetPr(prhs[1]);
         x      = mxGetPr(prhs[2]);
         result = mxGetPr(plhs[0]);
-        
-//         splinter::interp2_F<double>(Matrix, nrows, ncols, x, y, npoints, result,1);
         splinter::parallel_interp2(splinter::interp2_F<double>,Matrix, nrows, ncols, x, y, npoints, result, 1);
 
     }
