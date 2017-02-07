@@ -54,6 +54,6 @@ Note that splinter assumes the coordinates of the data are an integer grid and t
 To use these functions, simply download the code and compile by running `compile_mex_script.m`. If you receive a "MEX completed successfully", then the splinterp functions are now accessible from within MATLAB (you may need to add the directory where they exist to your path). If you have not used MEX before, you may need to run `mex -setup` first to configure your C compiler. More information can be foud [here](https://www.mathworks.com/help/matlab/ref/mex.html) if you run into trouble.
 
 ### Benchmarks
-![](https://github.com/apryor6/splinter/blob/master/benchmark/linear_time.pdf)
+![](benchmark/linear_time.png)
 ![](benchmark/log_time.png)
 ![](benchmark/ratio.png)
