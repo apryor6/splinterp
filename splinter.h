@@ -1,5 +1,5 @@
-//
-// Created by Alan Pryor on 2/1/17.
+// -- splinter.h --
+// Created by AJ Pryor on 2/2/17.
 //
 
 #ifndef SPLINTER_H
@@ -12,7 +12,9 @@
 #include "mex.h"
 
 // #define THREAD_CHUNK_SIZE 4096*4096/16
-#define NUM_THREADS 8
+#ifndef NUM_THREADS
+#define NUM_THREADS 12
+#endif
 #define SERIAL_LIMIT NUM_THREADS
 // Interpolate position x,y from 2D array stored in data, which is assumed to lie on an integer coordinate system.
 // Values of x and y that lie outside of the dimensions of data are set to 0.

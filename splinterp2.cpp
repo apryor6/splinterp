@@ -1,10 +1,9 @@
-//
-// Created by Alan Pryor on 2/2/17.
+// -- splinterp2.cpp --
+// Created by AJ Pryor on 2/2/17.
 //
 #include <vector>
 #include "mex.h"
 #include "splinter.h"
-using namespace splinter;
 
 void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
     if (mxIsComplex(prhs[0])){
@@ -31,8 +30,8 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         result_r = mxGetPr(plhs[0]);
         result_i = mxGetPi(plhs[0]);
         
-//         interp2_F_cx<double>(Matrix_r,Matrix_i, nrows, ncols, x, y, npoints, result_r, result_i,1);
-        parallel_interp2_cx(interp2_F_cx<double>,Matrix_r,Matrix_i, nrows, ncols, x, y, npoints, result_r, result_i, 1);
+//         splinter::interp2_F_cx<double>(Matrix_r,Matrix_i, nrows, ncols, x, y, npoints, result_r, result_i,1);
+        splinter::parallel_interp2_cx(splinter::interp2_F_cx<double>,Matrix_r,Matrix_i, nrows, ncols, x, y, npoints, result_r, result_i, 1);
 
     } else {
 
@@ -55,8 +54,8 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         x      = mxGetPr(prhs[2]);
         result = mxGetPr(plhs[0]);
         
-//         interp2_F<double>(Matrix, nrows, ncols, x, y, npoints, result,1);
-        parallel_interp2(interp2_F<double>,Matrix, nrows, ncols, x, y, npoints, result, 1);
+//         splinter::interp2_F<double>(Matrix, nrows, ncols, x, y, npoints, result,1);
+        splinter::parallel_interp2(splinter::interp2_F<double>,Matrix, nrows, ncols, x, y, npoints, result, 1);
 
     }
 }
