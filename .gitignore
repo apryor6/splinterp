@@ -1,3 +1,6 @@
 bench1.m
 bench2.m
 bench3.m
+*mexmac*
+*mexa*
+*.log*
