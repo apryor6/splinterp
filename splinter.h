@@ -12,7 +12,7 @@
 #include "mex.h"
 
 #ifndef NUM_THREADS
-#define NUM_THREADS 4
+#define NUM_THREADS 12
 #endif
 #ifndef SERIAL_LIMIT
 #define SERIAL_LIMIT 4194304
