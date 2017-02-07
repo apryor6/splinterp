@@ -14,7 +14,8 @@ return 0;
 }
 ~~~
 
-can be compiled to use splinter with 16 threads with a command like so
+can be compiled to use splinter with 16 threads with a command like so  
+
 `g++ test.cpp -I /path/to/splinter/ -D NUM_THREADS=12`
 
 ### Conventions
