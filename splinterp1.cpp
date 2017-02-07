@@ -8,7 +8,6 @@ using namespace splinter;
 
 void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
     if (mxIsComplex(prhs[0])){
-        mexPrintf("complex!\n");
         double const *Matrix_r; 
         double const *Matrix_i;
         double const *x;
@@ -29,10 +28,10 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         result_r = mxGetPr(plhs[0]);
         result_i = mxGetPi(plhs[0]);
         
-        interp1_F_cx<double>(Matrix_r,Matrix_i, nrows, x, npoints, result_r, result_i);
+//         interp1_F_cx<double>(Matrix_r,Matrix_i, nrows, x, npoints, result_r, result_i,(long long) 1);
+        parallel_interp1_cx(interp1_F_cx<double>, Matrix_r,Matrix_i, nrows, x, npoints, result_r, result_i, 1);
 
     } else {
-        mexPrintf("real!\n");
         double const *Matrix; 
         double const *x;
         double *result;
@@ -49,8 +48,8 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         x      = mxGetPr(prhs[1]);
         result = mxGetPr(plhs[0]);
         
-//         interp1_F<double>(Matrix, nrows, x, npoints, result);
-        parallel_interp1(interp1_F<double>, Matrix, nrows, x, npoints, result);
+//         interp1_F<double>(Matrix, nrows, x, npoints, result, 1);
+        parallel_interp1(interp1_F<double>, Matrix, nrows, x, npoints, result, 1);
 
     }
 }

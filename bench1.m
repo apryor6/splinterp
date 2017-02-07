@@ -2,11 +2,11 @@ clear
 N = 4096^2;
     n = 1;
     vec = 1:.1:N;
-    vec = 1:100;
+    vec = 1:100000;
 %     vec = 1:2560;
-    vec_c = vec - 1;
+    vec_c = vec;
     b = rand(N,1) + 1j*rand(N,1);
-    b = rand(N,1);
+%     b = rand(N,1);
     xx = 1:N;
     tic
 %     for i = 1:n

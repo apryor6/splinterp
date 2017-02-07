@@ -1,7 +1,7 @@
 % Ns = [2.^(4:9)]
 clear
 Ns = [25:25:400]
-Ns = 512;
+% Ns = 512;
 count=1;
 for N = Ns;
     N
@@ -17,9 +17,9 @@ for N = Ns;
 %     yy_o = repmat(yy_o(:),[1,1]);
 %     zz_o = repmat(zz_o(:),[1,1]);
     
-    xx_oc = xx_o - 1;
-    yy_oc = yy_o - 1;
-    zz_oc = zz_o - 1;
+    xx_oc = xx_o;
+    yy_oc = yy_o;
+    zz_oc = zz_o;
     tic
     for it = 1:15
     a = interp3(b,xx_o,yy_o,zz_o);

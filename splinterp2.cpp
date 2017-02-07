@@ -31,7 +31,8 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         result_r = mxGetPr(plhs[0]);
         result_i = mxGetPi(plhs[0]);
         
-        interp2_F_cx<double>(Matrix_r,Matrix_i, nrows, ncols, x, y, npoints, result_r, result_i);
+//         interp2_F_cx<double>(Matrix_r,Matrix_i, nrows, ncols, x, y, npoints, result_r, result_i,1);
+        parallel_interp2_cx(interp2_F_cx<double>,Matrix_r,Matrix_i, nrows, ncols, x, y, npoints, result_r, result_i, 1);
 
     } else {
 
@@ -54,7 +55,8 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         x      = mxGetPr(prhs[2]);
         result = mxGetPr(plhs[0]);
         
-        interp2_F<double>(Matrix, nrows, ncols, x, y, npoints, result);
+//         interp2_F<double>(Matrix, nrows, ncols, x, y, npoints, result,1);
+        parallel_interp2(interp2_F<double>,Matrix, nrows, ncols, x, y, npoints, result, 1);
 
     }
 }

@@ -12,7 +12,7 @@
 #include "mex.h"
 
 // #define THREAD_CHUNK_SIZE 4096*4096/16
-#define NUM_THREADS 12
+#define NUM_THREADS 8
 #define SERIAL_LIMIT NUM_THREADS
 // Interpolate position x,y from 2D array stored in data, which is assumed to lie on an integer coordinate system.
 // Values of x and y that lie outside of the dimensions of data are set to 0.
@@ -22,7 +22,8 @@ namespace splinter{
     using func1D = void(*)(const T* const, 
                          const size_t&,
                          const T* const,
-                         const size_t&, T*);
+                         const size_t&, T*,
+                         const long long&);
     
     template <typename T>
     void parallel_interp1(func1D<T> f, 
@@ -30,32 +31,27 @@ namespace splinter{
                           const size_t& nrows,
                           const T* const x,
                           const size_t& N, 
-                          T* result){
+                          T* result,
+                          const long long& origin_offset){
 
-        if ( N <= SERIAL_LIMIT){
-            f(data,nrows,x,N,result);
+        if ( N <= SERIAL_LIMIT){ // for small numbers of elements just use 1 thread
+            f(data,nrows,x,N,result,origin_offset);
         }
-        else{
+        else{ // launch multiple threads
             unsigned long long THREAD_CHUNK_SIZE = (N + NUM_THREADS - 1)  / NUM_THREADS;
-//             mexPrintf("THREAD_CHUNK_SIZE = %i",THREAD_CHUNK_SIZE);
 
             std::vector<std::thread> workers;
             workers.reserve(NUM_THREADS);
-    //         mexPrintf("calling function\n");
-    //         f(data,nrows,x,N,result);
-    //         std::thread a(f,data,nrows,x,N,result);
-    //         a.join();
             const T *tmp_x = x;
             T *tmp_result = result;
             int i;
             for ( i = 0; i < NUM_THREADS; ++i){
-    //         for (int i = 0; i < NUM_THREADS; ++iqa  
 
                 if ( ((i+1)*THREAD_CHUNK_SIZE - 1) < N){
-                workers.emplace_back( std::thread(f,data,nrows,tmp_x,THREAD_CHUNK_SIZE,tmp_result) );
+                workers.emplace_back( std::thread(f,data,nrows,tmp_x,THREAD_CHUNK_SIZE,tmp_result,origin_offset) );
                 }
                 else{
-                    workers.emplace_back(std::thread(f,data,nrows,tmp_x,(size_t)(x+N-tmp_x),tmp_result));
+                    workers.emplace_back(std::thread(f,data,nrows,tmp_x,(size_t)(x+N-tmp_x),tmp_result,origin_offset));
                 }
                 tmp_x+=THREAD_CHUNK_SIZE;
                 tmp_result+=THREAD_CHUNK_SIZE;
@@ -64,7 +60,303 @@ namespace splinter{
         }
     
     };
+     
+    template <typename T>
+    using func1D_cx = void(*)(const T* const, const T* const,
+                         const size_t&,
+                         const T* const,
+                         const size_t&, T*, T*,
+                         const long long&);
 
+    template <typename T>
+    void parallel_interp1_cx(func1D_cx<T> f, 
+                          const T* const data_r, 
+                          const T* const data_i,
+                          const size_t& nrows,
+                          const T* const x,
+                          const size_t& N, 
+                          T* result_r,
+                          T* result_i,
+                          const long long& origin_offset){
+
+        if ( N <= SERIAL_LIMIT){// for small numbers of elements just use 1 thread
+            f(data_r,data_i,nrows,x,N,result_r,result_i,origin_offset);
+        }
+        else{// launch multiple threads
+            unsigned long long THREAD_CHUNK_SIZE = (N + NUM_THREADS - 1)  / NUM_THREADS;
+
+            std::vector<std::thread> workers;
+            workers.reserve(NUM_THREADS);
+            const T *tmp_x = x;
+            T *tmp_result_r = result_r;
+            T *tmp_result_i = result_i;
+            int i;
+            for ( i = 0; i < NUM_THREADS; ++i){
+
+                if ( ((i+1)*THREAD_CHUNK_SIZE - 1) < N){
+                workers.emplace_back( std::thread(f,data_r,data_i,nrows,tmp_x,THREAD_CHUNK_SIZE,tmp_result_r,tmp_result_i,origin_offset) );
+                }
+                else{
+                    workers.emplace_back(std::thread(f,data_r,data_i,nrows,tmp_x,(size_t)(x+N-tmp_x),tmp_result_r,tmp_result_i,origin_offset));
+                }
+                tmp_x+=THREAD_CHUNK_SIZE;
+                tmp_result_r+=THREAD_CHUNK_SIZE;
+                tmp_result_i+=THREAD_CHUNK_SIZE;
+            }
+            for (auto& t:workers)t.join();
+        }
+    
+    };
+    
+  
+    template <typename T>
+    using func2D = void(*)(const T* const, 
+                         const size_t&,
+                         const size_t&,
+                         const T* const,
+                         const T* const,
+                         const size_t&, T*,
+                         const long long&);
+    
+    template <typename T>
+    void parallel_interp2(func2D<T> f, 
+                          const T* const data, 
+                          const size_t& nrows,
+                          const size_t& ncols,
+                          const T* const x,
+                          const T* const y,
+                          const size_t& N, 
+                          T* result,
+                          const long long& origin_offset){
+
+        if ( N <= SERIAL_LIMIT){ // for small numbers of elements just use 1 thread
+            f(data,nrows,ncols,x,y,N,result,origin_offset);
+        }
+        else{ // launch multiple threads
+            unsigned long long THREAD_CHUNK_SIZE = (N + NUM_THREADS - 1)  / NUM_THREADS;
+
+            std::vector<std::thread> workers;
+            workers.reserve(NUM_THREADS);
+            const T *tmp_x = x;
+            const T *tmp_y = y;
+            T *tmp_result = result;
+            int i;
+            for ( i = 0; i < NUM_THREADS; ++i){
+
+                if ( ((i+1)*THREAD_CHUNK_SIZE - 1) < N){
+                workers.emplace_back( std::thread(f,data,nrows,ncols,tmp_x,tmp_y,THREAD_CHUNK_SIZE,tmp_result,origin_offset) );
+                }
+                else{
+                    workers.emplace_back(std::thread(f,data,nrows,ncols,tmp_x,tmp_y,(size_t)(x+N-tmp_x),tmp_result,origin_offset));
+                }
+                tmp_x+=THREAD_CHUNK_SIZE;
+                tmp_y+=THREAD_CHUNK_SIZE;
+                tmp_result+=THREAD_CHUNK_SIZE;
+            }
+            for (auto& t:workers)t.join();
+        }
+    
+    };
+    
+    
+    
+    template <typename T>
+    using func2D_cx = void(*)(const T* const, const T* const,
+                         const size_t&,
+                         const size_t&,
+                         const T* const,
+                         const T* const,
+                         const size_t&, T*, T*,
+                         const long long&);
+
+    template <typename T>
+    void parallel_interp2_cx(func2D_cx<T> f, 
+                          const T* const data_r, 
+                          const T* const data_i,
+                          const size_t& nrows,
+                          const size_t& ncols,
+                          const T* const x,
+                          const T* const y,
+                          const size_t& N, 
+                          T* result_r,
+                          T* result_i,
+                          const long long& origin_offset){
+
+        if ( N <= SERIAL_LIMIT){// for small numbers of elements just use 1 thread
+            f(data_r,data_i,nrows,ncols,x,y,N,result_r,result_i,origin_offset);
+        }
+        else{// launch multiple threads
+            unsigned long long THREAD_CHUNK_SIZE = (N + NUM_THREADS - 1)  / NUM_THREADS;
+
+            std::vector<std::thread> workers;
+            workers.reserve(NUM_THREADS);
+            const T *tmp_x = x;
+            const T *tmp_y = y;
+            T *tmp_result_r = result_r;
+            T *tmp_result_i = result_i;
+            int i;
+            for ( i = 0; i < NUM_THREADS; ++i){
+
+                if ( ((i+1)*THREAD_CHUNK_SIZE - 1) < N){
+                workers.emplace_back( std::thread(f,data_r,data_i,nrows,ncols,tmp_x,tmp_y,THREAD_CHUNK_SIZE,tmp_result_r,tmp_result_i,origin_offset) );
+                }
+                else{
+                    workers.emplace_back(std::thread(f,data_r,data_i,nrows,ncols,tmp_x,tmp_y,(size_t)(x+N-tmp_x),tmp_result_r,tmp_result_i,origin_offset));
+                }
+                tmp_x+=THREAD_CHUNK_SIZE;
+                tmp_y+=THREAD_CHUNK_SIZE;
+                tmp_result_r+=THREAD_CHUNK_SIZE;
+                tmp_result_i+=THREAD_CHUNK_SIZE;
+            }
+            for (auto& t:workers)t.join();
+        }
+    
+    };
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    template <typename T>
+    using func3D = void(*)(const T* const, 
+                         const size_t&,
+                         const size_t&,
+                         const size_t&,
+                         const T* const,
+                         const T* const,
+                         const T* const,
+                         const size_t&, T*,
+                         const long long&);
+    
+    template <typename T>
+    void parallel_interp3(func3D<T> f, 
+                          const T* const data, 
+                          const size_t& nrows,
+                          const size_t& ncols,
+                          const size_t& nlayers,
+                          const T* const x,
+                          const T* const y,
+                          const T* const z,
+                          const size_t& N, 
+                          T* result,
+                          const long long& origin_offset){
+
+        if ( N <= SERIAL_LIMIT){ // for small numbers of elements just use 1 thread
+            f(data,nrows,ncols,nlayers,x,y,z,N,result,origin_offset);
+        }
+        else{ // launch multiple threads
+            unsigned long long THREAD_CHUNK_SIZE = (N + NUM_THREADS - 1)  / NUM_THREADS;
+
+            std::vector<std::thread> workers;
+            workers.reserve(NUM_THREADS);
+            const T *tmp_x = x;
+            const T *tmp_y = y;
+            const T *tmp_z = z;
+            T *tmp_result = result;
+            int i;
+            for ( i = 0; i < NUM_THREADS; ++i){
+
+                if ( ((i+1)*THREAD_CHUNK_SIZE - 1) < N){
+                workers.emplace_back( std::thread(f,data,nrows,ncols,nlayers,tmp_x,tmp_y,tmp_z,THREAD_CHUNK_SIZE,tmp_result,origin_offset) );
+                }
+                else{
+                    workers.emplace_back(std::thread(f,data,nrows,ncols,nlayers,tmp_x,tmp_y,tmp_z,(size_t)(x+N-tmp_x),tmp_result,origin_offset));
+                }
+                tmp_x+=THREAD_CHUNK_SIZE;
+                tmp_y+=THREAD_CHUNK_SIZE;
+                tmp_result+=THREAD_CHUNK_SIZE;
+            }
+            for (auto& t:workers)t.join();
+        }
+    
+    };
+    
+    //const T* const data_r,  const T* const data_i, 
+//                       const size_t& nrows, const size_t& ncols, const size_t& nlayers, 
+//                       const T* const x, const T* const y, const T* const z, const size_t N, 
+//                       T* result_r, T* result_i,
+//                       const long long& origin_offset=0){
+    
+    template <typename T>
+    using func3D_cx = void(*)(const T* const, const T* const,
+                              const size_t&,
+                              const size_t&,
+                              const size_t&,
+                              const T* const,
+                              const T* const,
+                              const T* const,
+                              const size_t&, T*, T*,
+                              const long long&);
+
+    template <typename T>
+    void parallel_interp3_cx(func3D_cx<T> f, 
+                          const T* const data_r, 
+                          const T* const data_i,
+                          const size_t& nrows,
+                          const size_t& ncols,
+                          const size_t& nlayers,
+                          const T* const x,
+                          const T* const y,
+                          const T* const z,
+                          const size_t& N, 
+                          T* result_r,
+                          T* result_i,
+                          const long long& origin_offset){
+
+        if ( N <= SERIAL_LIMIT){// for small numbers of elements just use 1 thread
+            f(data_r,data_i,nrows,ncols,nlayers,x,y,z,N,result_r,result_i,origin_offset);
+        }
+        else{// launch multiple threads
+            unsigned long long THREAD_CHUNK_SIZE = (N + NUM_THREADS - 1)  / NUM_THREADS;
+
+            std::vector<std::thread> workers;
+            workers.reserve(NUM_THREADS);
+            const T *tmp_x = x;
+            const T *tmp_y = y;
+            const T *tmp_z = z;
+            T *tmp_result_r = result_r;
+            T *tmp_result_i = result_i;
+            int i;
+            for ( i = 0; i < NUM_THREADS; ++i){
+
+                if ( ((i+1)*THREAD_CHUNK_SIZE - 1) < N){
+                workers.emplace_back( std::thread(f,data_r,data_i,nrows,ncols,nlayers,tmp_x,tmp_y,tmp_z,THREAD_CHUNK_SIZE,tmp_result_r,tmp_result_i,origin_offset) );
+                }
+                else{
+                    workers.emplace_back(std::thread(f,data_r,data_i,nrows,ncols,nlayers,tmp_x,tmp_y,tmp_z,(size_t)(x+N-tmp_x),tmp_result_r,tmp_result_i,origin_offset));
+                }
+                tmp_x+=THREAD_CHUNK_SIZE;
+                tmp_y+=THREAD_CHUNK_SIZE;
+                tmp_result_r+=THREAD_CHUNK_SIZE;
+                tmp_result_i+=THREAD_CHUNK_SIZE;
+            }
+            for (auto& t:workers)t.join();
+        }
+    
+    };
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     template <typename T>
             void parallel_interp2();
     
@@ -75,11 +367,12 @@ namespace splinter{
     void interp1_F(const T* const data, 
                    const size_t& nrows,
                    const T* const x,
-                   const size_t& N, T* result){
+                   const size_t& N, T* result,
+                   const long long& origin_offset=0){
 
         for (auto i = 0; i < N; ++i) { 
            // get coordinates of bounding grid locations
-           int x_1 = (int) std::floor(x[i]);
+           long long x_1 = (long long) std::floor(x[i]) - origin_offset;
            // handle special case where x is the last element
            if (x_1 == (nrows-1)){x_1 -= 1;}
            // return 0 for target values that are out of bounds
@@ -101,11 +394,12 @@ namespace splinter{
     template <typename T>
     void interp1_F_cx(const T* const data_r, const T* const data_i,
                       const size_t& nrows, const T* const x, 
-                      const size_t& N, T* result_r, T* result_i){
+                      const size_t& N, T* result_r, T* result_i,
+                      const long long& origin_offset=0){
 
         for (auto i = 0; i < N; ++i) { 
            // get coordinates of bounding grid locations
-           long long x_1 = ( long long) std::floor(x[i]);
+           long long x_1 = ( long long) std::floor(x[i]) - origin_offset;
            // handle special case where x is the last element
            if (x_1 == (nrows-1)){x_1 -= 1;}
            // return 0 for target values that are out of bounds
@@ -118,7 +412,7 @@ namespace splinter{
                const T& f_1_r = data_r[x_1];
                const T& f_2_r = data_r[x_1+1];
                 // compute weights
-               T w_x1 = x_1+1 - x[i];
+               T w_x1 = x_1+1 - (x[i] - origin_offset);
                result_r[i] = f_1_r * w_x1 +f_2_r - f_2_r*w_x1;
                
                const T& f_1_i = data_i[x_1];
@@ -133,14 +427,15 @@ namespace splinter{
     void interp2_F(const T* const data,
                       const size_t& nrows, const size_t& ncols,
                       const T* const x, const T* const y,
-                      const size_t& N, T* result){
+                      const size_t& N, T* result,
+                      const long long& origin_offset=0){
 
         for (auto i = 0; i < N; ++i) {
 
            // get coordinates of bounding grid locations
-           long long x_1 = ( long long) std::floor(x[i]);
+           long long x_1 = ( long long) std::floor(x[i]) - origin_offset;
            long long x_2 = x_1 + 1;
-           long long y_1 = ( long long) std::floor(y[i]);
+           long long y_1 = ( long long) std::floor(y[i]) - origin_offset;
            long long y_2 = y_1 + 1;
 
            // handle special case where x/y is the last element
@@ -161,10 +456,10 @@ namespace splinter{
                 const T& f_22 = data[x_2 + y_2*nrows];
 
                 // compute weights
-                T w_x1 = x_2 - x[i];
-                T w_x2 = x[i] - x_1;
-                T w_y1 = y_2 - y[i];
-                T w_y2 = y[i] - y_1;
+                T w_x1 = x_2 - (x[i] - origin_offset);
+                T w_x2 = (x[i] - origin_offset) - x_1;
+                T w_y1 = y_2 - (y[i] - origin_offset);
+                T w_y2 = (y[i] - origin_offset) - y_1;
 
                 T a,b;
                 a = f_11 * w_x1 + f_21 * w_x2;
@@ -179,14 +474,15 @@ namespace splinter{
     void interp2_F_cx(const T* const data_r, const T* const data_i,
                       const size_t& nrows, const size_t& ncols, 
                       const T* const x, const T* const y,
-                      const size_t& N, T* result_r, T* result_i){
+                      const size_t& N, T* result_r, T* result_i,
+                      const long long& origin_offset=0){
 
         for (auto i = 0; i < N; ++i) {
 
            // get coordinates of bounding grid locations
-           long long x_1 = ( long long) std::floor(x[i]);
+           long long x_1 = ( long long) std::floor(x[i]) - origin_offset;
            long long x_2 = x_1 + 1;
-           long long y_1 = ( long long) std::floor(y[i]);
+           long long y_1 = ( long long) std::floor(y[i]) - origin_offset;
            long long y_2 = y_1 + 1;
           
            // handle special case where x/y is the last element
@@ -208,10 +504,10 @@ namespace splinter{
                 const T& f_22_r = data_r[x_2 + y_2*nrows];
 
                 // compute weights
-                T w_x1 = x_2 - x[i];
-                T w_x2 = x[i] - x_1;
-                T w_y1 = y_2 - y[i];
-                T w_y2 = y[i] - y_1;
+                T w_x1 = x_2 - (x[i] - origin_offset);
+                T w_x2 = (x[i] - origin_offset) - x_1;
+                T w_y1 = y_2 - (y[i] - origin_offset);
+                T w_y2 = (y[i] - origin_offset) - y_1;
 
                 T a,b;
                 a = f_11_r * w_x1 + f_21_r * w_x2;
@@ -235,17 +531,18 @@ namespace splinter{
     void interp3_F(const T* data, 
                    const size_t& nrows, const size_t& ncols, const size_t& nlayers,
                    const T* x, const T* y, const T* z, 
-                   const size_t N, T* result){
+                   const size_t& N, T* result,
+                   const long long& origin_offset=0){
         
         // Assumes Fortran style ordering for data
         for (auto i = 0; i < N; ++i) {
 
             // get coordinates of bounding grid locations
-            long long x_1 = ( long long) std::floor(x[i]);
+            long long x_1 = ( long long) std::floor(x[i]) - origin_offset;
             long long x_2 = x_1 + 1;
-            long long y_1 = ( long long) std::floor(y[i]);
+            long long y_1 = ( long long) std::floor(y[i]) - origin_offset;
             long long y_2 = y_1 + 1;
-            long long z_1 = ( long long) std::floor(z[i]);
+            long long z_1 = ( long long) std::floor(z[i]) - origin_offset;
             long long z_2 = z_1 + 1;
 
             // handle special case where x,x, or z is the last element
@@ -273,10 +570,10 @@ namespace splinter{
                 const T& f_22_1 = data[z_stride + y_2_stride + x_2];
 
                 // compute weights
-                T w_x1 = x_2  - x[i];
-                T w_x2 = x[i] - x_1;
-                T w_y1 = y_2  - y[i];
-                T w_y2 = y[i] - y_1;
+                T w_x1 = x_2  - (x[i] - origin_offset);
+                T w_x2 = (x[i] - origin_offset) - x_1;
+                T w_y1 = y_2  - (y[i] - origin_offset);
+                T w_y2 = (y[i] - origin_offset) - y_1;
 
                 T a_1, b_1;
                 a_1 = f_11_1 * w_x1 + f_21_1 * w_x2;
@@ -299,8 +596,8 @@ namespace splinter{
 
                 const T F_2 = a_2 * w_y1 + b_2 * w_y2;
 
-                T w_z1 = z_2 - z[i];
-                T w_z2 = z[i] - z_1;
+                T w_z1 = z_2 - (z[i] - origin_offset);
+                T w_z2 = (z[i] - origin_offset) - z_1;
 
                result[i] = F_1 * w_z1 + F_2*w_z2;
             }
@@ -311,18 +608,19 @@ namespace splinter{
     template <typename T>
     void interp3_F_cx(const T* const data_r,  const T* const data_i, 
                       const size_t& nrows, const size_t& ncols, const size_t& nlayers, 
-                      const T* const x, const T* const y, const T* const z, const size_t N, 
-                      T* result_r, T* result_i){
+                      const T* const x, const T* const y, const T* const z, const size_t& N, 
+                      T* result_r, T* result_i,
+                      const long long& origin_offset=0){
         
         // Fortran style ordering for trilinear interpolation of complex data
         for (auto i = 0; i < N; ++i) {
 
             // get coordinates of bounding grid locations
-            long long x_1 = ( long long) std::floor(x[i]);
+            long long x_1 = ( long long) std::floor(x[i])-origin_offset;
             long long x_2 = x_1 + 1;
-            long long y_1 = ( long long) std::floor(y[i]);
+            long long y_1 = ( long long) std::floor(y[i])-origin_offset;
             long long y_2 = y_1 + 1;
-            long long z_1 = ( long long) std::floor(z[i]);
+            long long z_1 = ( long long) std::floor(z[i])-origin_offset;
             long long z_2 = z_1 + 1;
             
             // handle special case where x, y, or z is the last element
@@ -343,10 +641,10 @@ namespace splinter{
                     auto y_2_stride = y_2*nrows;
                     
                     // compute weights
-                    T w_x1 = x_2  - x[i];
-                    T w_x2 = x[i] - x_1;
-                    T w_y1 = y_2  - y[i];
-                    T w_y2 = y[i] - y_1;
+                    T w_x1 = x_2  - (x[i] - origin_offset); 
+                    T w_x2 = (x[i] - origin_offset) - x_1;
+                    T w_y1 = y_2  - (y[i] - origin_offset);
+                    T w_y2 = (y[i] - origin_offset) - y_1;
 
                 {
                     
@@ -378,8 +676,8 @@ namespace splinter{
                     const T F_2 = a_2 * w_y1 + b_2 * w_y2;
 
                     // compute weights
-                    T w_z1 = z_2 - z[i];
-                    T w_z2 = z[i] - z_1;
+                    T w_z1 = z_2 - (z[i] - origin_offset);
+                    T w_z2 = (z[i] - origin_offset) - z_1;
 
                    result_r[i] = F_1 * w_z1 + F_2*w_z2;
                 }
@@ -413,8 +711,8 @@ namespace splinter{
 
                     const T F_2 = a_2 * w_y1 + b_2 * w_y2;
 
-                    T w_z1 = z_2 - z[i];
-                    T w_z2 = z[i] - z_1;
+                    T w_z1 = z_2 - (z[i] - origin_offset);
+                    T w_z2 = (z[i] - origin_offset) - z_1;
 
                    result_i[i] = F_1 * w_z1 + F_2*w_z2;
                 }                        
