@@ -14,7 +14,7 @@
 #ifndef NUM_THREADS
 #define NUM_THREADS 300
 #endif
-#ifndef NUM_THREADS
+#ifndef SERIAL_LIMIT
 #define SERIAL_LIMIT 2047
 #endif
 // Interpolate position x,y from 2D array stored in data, which is assumed to lie on an integer coordinate system.

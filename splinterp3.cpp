@@ -58,7 +58,7 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         const mwSize *dims_out  = mxGetDimensions(prhs[1]);
         size_t npoints = 1;
         for (auto i = 0; i < ndims_out; ++i) npoints*=dims_out[i];
-        plhs[0] = mxCreateNumericArray(ndims_out, dims_out, mxDOUBLE_CLASS, mxCOMPLEX);
+        plhs[0] = mxCreateNumericArray(ndims_out, dims_out, mxDOUBLE_CLASS, mxREAL);
         
         Matrix = mxGetPr(prhs[0]);
         y        = mxGetPr(prhs[1]);
