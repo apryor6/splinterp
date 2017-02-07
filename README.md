@@ -55,5 +55,5 @@ To use these functions, simply download the code and compile by running `compile
 
 ### Benchmarks
 ![](https://github.com/apryor6/splinter/blob/master/benchmark/linear_time.pdf)
-![](benchmarks/log_time.png)
-![](benchmarks/ratio.png)
+![](benchmark/log_time.png)
+![](benchmark/ratio.png)
