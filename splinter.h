@@ -7,17 +7,74 @@
 
 
 #include <cmath>
+#include <thread>
+#include <vector>
 #include "mex.h"
 
-
+// #define THREAD_CHUNK_SIZE 4096*4096/16
+#define NUM_THREADS 12
+#define SERIAL_LIMIT NUM_THREADS
 // Interpolate position x,y from 2D array stored in data, which is assumed to lie on an integer coordinate system.
 // Values of x and y that lie outside of the dimensions of data are set to 0.
 namespace splinter{
-        
+    
+    template <typename T>
+    using func1D = void(*)(const T* const, 
+                         const size_t&,
+                         const T* const,
+                         const size_t&, T*);
+    
+    template <typename T>
+    void parallel_interp1(func1D<T> f, 
+                          const T* const data, 
+                          const size_t& nrows,
+                          const T* const x,
+                          const size_t& N, 
+                          T* result){
+
+        if ( N <= SERIAL_LIMIT){
+            f(data,nrows,x,N,result);
+        }
+        else{
+            unsigned long long THREAD_CHUNK_SIZE = (N + NUM_THREADS - 1)  / NUM_THREADS;
+//             mexPrintf("THREAD_CHUNK_SIZE = %i",THREAD_CHUNK_SIZE);
+
+            std::vector<std::thread> workers;
+            workers.reserve(NUM_THREADS);
+    //         mexPrintf("calling function\n");
+    //         f(data,nrows,x,N,result);
+    //         std::thread a(f,data,nrows,x,N,result);
+    //         a.join();
+            const T *tmp_x = x;
+            T *tmp_result = result;
+            int i;
+            for ( i = 0; i < NUM_THREADS; ++i){
+    //         for (int i = 0; i < NUM_THREADS; ++iqa  
+
+                if ( ((i+1)*THREAD_CHUNK_SIZE - 1) < N){
+                workers.emplace_back( std::thread(f,data,nrows,tmp_x,THREAD_CHUNK_SIZE,tmp_result) );
+                }
+                else{
+                    workers.emplace_back(std::thread(f,data,nrows,tmp_x,(size_t)(x+N-tmp_x),tmp_result));
+                }
+                tmp_x+=THREAD_CHUNK_SIZE;
+                tmp_result+=THREAD_CHUNK_SIZE;
+            }
+            for (auto& t:workers)t.join();
+        }
+    
+    };
+
+    template <typename T>
+            void parallel_interp2();
+    
+    template <typename T>
+            void parallel_interp3();
+    
     template <typename T>
     void interp1_F(const T* const data, 
                    const size_t& nrows,
-                   const double* const x,
+                   const T* const x,
                    const size_t& N, T* result){
 
         for (auto i = 0; i < N; ++i) { 
@@ -31,8 +88,8 @@ namespace splinter{
             } 
             else {
                 // get the array values
-                const T& f_1 = data[x_1];
-                const T& f_2 = data[x_1+1];
+               const T& f_1 = data[x_1];
+               const T& f_2 = data[x_1+1];
                 // compute weights
                T w_x1 = x_1+1 - x[i];
                result[i] = f_1 * w_x1 +f_2 - f_2*w_x1;
@@ -43,12 +100,12 @@ namespace splinter{
 
     template <typename T>
     void interp1_F_cx(const T* const data_r, const T* const data_i,
-                      const size_t& nrows, const double* const x, 
+                      const size_t& nrows, const T* const x, 
                       const size_t& N, T* result_r, T* result_i){
 
         for (auto i = 0; i < N; ++i) { 
            // get coordinates of bounding grid locations
-           int x_1 = (int) std::floor(x[i]);
+           long long x_1 = ( long long) std::floor(x[i]);
            // handle special case where x is the last element
            if (x_1 == (nrows-1)){x_1 -= 1;}
            // return 0 for target values that are out of bounds
@@ -75,16 +132,16 @@ namespace splinter{
     template <typename T>
     void interp2_F(const T* const data,
                       const size_t& nrows, const size_t& ncols,
-                      const double* const x, const double* const y,
+                      const T* const x, const T* const y,
                       const size_t& N, T* result){
 
         for (auto i = 0; i < N; ++i) {
 
            // get coordinates of bounding grid locations
-           int x_1 = (int) std::floor(x[i]);
-           int x_2 = x_1 + 1;
-           int y_1 = (int) std::floor(y[i]);
-           int y_2 = y_1 + 1;
+           long long x_1 = ( long long) std::floor(x[i]);
+           long long x_2 = x_1 + 1;
+           long long y_1 = ( long long) std::floor(y[i]);
+           long long y_2 = y_1 + 1;
 
            // handle special case where x/y is the last element
            if (x_1 == (nrows-1) )   { x_2 -= 1; x_1 -= 1;}
@@ -109,7 +166,7 @@ namespace splinter{
                 T w_y1 = y_2 - y[i];
                 T w_y2 = y[i] - y_1;
 
-                double a,b;
+                T a,b;
                 a = f_11 * w_x1 + f_21 * w_x2;
                 b = f_12 * w_x1 + f_22 * w_x2;
                 result[i] = a * w_y1 + b * w_y2;
@@ -121,17 +178,17 @@ namespace splinter{
     template <typename T>
     void interp2_F_cx(const T* const data_r, const T* const data_i,
                       const size_t& nrows, const size_t& ncols, 
-                      const double* const x, const double* const y,
+                      const T* const x, const T* const y,
                       const size_t& N, T* result_r, T* result_i){
 
         for (auto i = 0; i < N; ++i) {
 
            // get coordinates of bounding grid locations
-           int x_1 = (int) std::floor(x[i]);
-           int x_2 = x_1 + 1;
-           int y_1 = (int) std::floor(y[i]);
-           int y_2 = y_1 + 1;
-           
+           long long x_1 = ( long long) std::floor(x[i]);
+           long long x_2 = x_1 + 1;
+           long long y_1 = ( long long) std::floor(y[i]);
+           long long y_2 = y_1 + 1;
+          
            // handle special case where x/y is the last element
            if (x_1 == (nrows-1) )   { x_2 -= 1; x_1 -= 1;}
            if (y_1 == (ncols-1) )   { y_2 -= 1; y_1 -= 1;}
@@ -156,7 +213,7 @@ namespace splinter{
                 T w_y1 = y_2 - y[i];
                 T w_y2 = y[i] - y_1;
 
-                double a,b;
+                T a,b;
                 a = f_11_r * w_x1 + f_21_r * w_x2;
                 b = f_12_r * w_x1 + f_22_r * w_x2;
                 result_r[i] = a * w_y1 + b * w_y2;
@@ -177,19 +234,19 @@ namespace splinter{
     template <typename T>
     void interp3_F(const T* data, 
                    const size_t& nrows, const size_t& ncols, const size_t& nlayers,
-                   const double* x, const double* y, const double* z, 
+                   const T* x, const T* y, const T* z, 
                    const size_t N, T* result){
         
         // Assumes Fortran style ordering for data
         for (auto i = 0; i < N; ++i) {
 
             // get coordinates of bounding grid locations
-            int x_1 = (int) std::floor(x[i]);
-            int x_2 = x_1 + 1;
-            int y_1 = (int) std::floor(y[i]);
-            int y_2 = y_1 + 1;
-            int z_1 = (int) std::floor(z[i]);
-            int z_2 = z_1 + 1;
+            long long x_1 = ( long long) std::floor(x[i]);
+            long long x_2 = x_1 + 1;
+            long long y_1 = ( long long) std::floor(y[i]);
+            long long y_2 = y_1 + 1;
+            long long z_1 = ( long long) std::floor(z[i]);
+            long long z_2 = z_1 + 1;
 
             // handle special case where x,x, or z is the last element
             if (x_1 == (nrows-1) )   { x_2 -= 1; x_1 -= 1;}
@@ -221,7 +278,7 @@ namespace splinter{
                 T w_y1 = y_2  - y[i];
                 T w_y2 = y[i] - y_1;
 
-                double a_1, b_1;
+                T a_1, b_1;
                 a_1 = f_11_1 * w_x1 + f_21_1 * w_x2;
                 b_1 = f_12_1 * w_x1 + f_22_1 * w_x2;
 
@@ -236,7 +293,7 @@ namespace splinter{
                 const T& f_21_2 = data[z_stride + y_1_stride + x_2];
                 const T& f_22_2 = data[z_stride + y_2_stride + x_2];
 
-                double a_2, b_2;
+                T a_2, b_2;
                 a_2 = f_11_2 * w_x1 + f_21_2 * w_x2;
                 b_2 = f_12_2 * w_x1 + f_22_2 * w_x2;
 
@@ -254,19 +311,19 @@ namespace splinter{
     template <typename T>
     void interp3_F_cx(const T* const data_r,  const T* const data_i, 
                       const size_t& nrows, const size_t& ncols, const size_t& nlayers, 
-                      const double* const x, const double* const y, const double* const z, const size_t N, 
+                      const T* const x, const T* const y, const T* const z, const size_t N, 
                       T* result_r, T* result_i){
         
         // Fortran style ordering for trilinear interpolation of complex data
         for (auto i = 0; i < N; ++i) {
 
             // get coordinates of bounding grid locations
-            int x_1 = (int) std::floor(x[i]);
-            int x_2 = x_1 + 1;
-            int y_1 = (int) std::floor(y[i]);
-            int y_2 = y_1 + 1;
-            int z_1 = (int) std::floor(z[i]);
-            int z_2 = z_1 + 1;
+            long long x_1 = ( long long) std::floor(x[i]);
+            long long x_2 = x_1 + 1;
+            long long y_1 = ( long long) std::floor(y[i]);
+            long long y_2 = y_1 + 1;
+            long long z_1 = ( long long) std::floor(z[i]);
+            long long z_2 = z_1 + 1;
             
             // handle special case where x, y, or z is the last element
             if (x_1 == (nrows-1) )   { x_2 -= 1; x_1 -= 1;}
@@ -300,7 +357,7 @@ namespace splinter{
                     const T& f_21_1 = data_r[z_stride + y_1_stride + x_2];
                     const T& f_22_1 = data_r[z_stride + y_2_stride + x_2];
 
-                    double a_1, b_1;
+                    T a_1, b_1;
                     a_1 = f_11_1 * w_x1 + f_21_1 * w_x2;
                     b_1 = f_12_1 * w_x1 + f_22_1 * w_x2;
 
@@ -314,7 +371,7 @@ namespace splinter{
                     const T& f_21_2 = data_r[z_stride + y_1_stride + x_2];
                     const T& f_22_2 = data_r[z_stride + y_2_stride + x_2];
 
-                    double a_2, b_2;
+                    T a_2, b_2;
                     a_2 = f_11_2 * w_x1 + f_21_2 * w_x2;
                     b_2 = f_12_2 * w_x1 + f_22_2 * w_x2;
 
@@ -336,7 +393,7 @@ namespace splinter{
                     const T& f_21_1 = data_i[z_stride + y_1_stride + x_2];
                     const T& f_22_1 = data_i[z_stride + y_2_stride + x_2];
 
-                    double a_1, b_1;
+                    T a_1, b_1;
                     a_1 = f_11_1 * w_x1 + f_21_1 * w_x2;
                     b_1 = f_12_1 * w_x1 + f_22_1 * w_x2;
 
@@ -350,7 +407,7 @@ namespace splinter{
                     const T& f_21_2 = data_i[z_stride + y_1_stride + x_2];
                     const T& f_22_2 = data_i[z_stride + y_2_stride + x_2];
 
-                    double a_2, b_2;
+                    T a_2, b_2;
                     a_2 = f_11_2 * w_x1 + f_21_2 * w_x2;
                     b_2 = f_12_2 * w_x1 + f_22_2 * w_x2;
 

@@ -8,6 +8,7 @@ using namespace splinter;
 
 void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
     if (mxIsComplex(prhs[0])){
+        mexPrintf("complex!\n");
         double const *Matrix_r; 
         double const *Matrix_i;
         double const *x;
@@ -31,7 +32,7 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         interp1_F_cx<double>(Matrix_r,Matrix_i, nrows, x, npoints, result_r, result_i);
 
     } else {
-
+        mexPrintf("real!\n");
         double const *Matrix; 
         double const *x;
         double *result;
@@ -42,13 +43,14 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         const mwSize *dims  = mxGetDimensions(prhs[1]);
         size_t npoints = 1;
         for (auto i = 0; i < ndims; ++i) npoints*=dims[i];
-        plhs[0] = mxCreateNumericArray(ndims, dims, mxDOUBLE_CLASS, mxCOMPLEX);
+        plhs[0] = mxCreateNumericArray(ndims, dims, mxDOUBLE_CLASS, mxREAL);
 
         Matrix = mxGetPr(prhs[0]);
         x      = mxGetPr(prhs[1]);
         result = mxGetPr(plhs[0]);
         
-        interp1_F<double>(Matrix, nrows, x, npoints, result);
+//         interp1_F<double>(Matrix, nrows, x, npoints, result);
+        parallel_interp1(interp1_F<double>, Matrix, nrows, x, npoints, result);
 
     }
 }

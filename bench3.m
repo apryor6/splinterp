@@ -21,13 +21,13 @@ for N = Ns;
     yy_oc = yy_o - 1;
     zz_oc = zz_o - 1;
     tic
-    for it = 1:1
+    for it = 1:15
     a = interp3(b,xx_o,yy_o,zz_o);
     end
     t1(count) = toc;
 
     tic
-    for it = 1:1
+    for it = 1:15
     a1 = splinterp3(b,xx_oc,yy_oc,zz_oc);
     end
     t2(count) = toc;
