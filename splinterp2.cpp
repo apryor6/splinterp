@@ -16,12 +16,14 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         
         size_t nrows   = mxGetM(prhs[0]);
         size_t ncols   = mxGetN(prhs[0]);
+        mexPrintf("ncols = %i\n",ncols);
+        mexPrintf("nrows = %i\n",nrows);
         const mwSize ndims  = mxGetNumberOfDimensions(prhs[1]);
         const mwSize *dims  = mxGetDimensions(prhs[1]);
         size_t npoints = 1;
         for (auto i = 0; i < ndims; ++i) npoints*=dims[i];
         plhs[0] = mxCreateNumericArray(ndims, dims, mxDOUBLE_CLASS, mxCOMPLEX);
-
+    mexPrintf("npoints = %i\n",npoints);
         Matrix_r = mxGetPr(prhs[0]);
         Matrix_i = mxGetPi(prhs[0]);
         y        = mxGetPr(prhs[1]);

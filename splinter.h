@@ -367,7 +367,7 @@ namespace splinter{
                const T& f_1 = data[x_1];
                const T& f_2 = data[x_1+1];
                 // compute weights
-               T w_x1 = x_1+1 - x[i];
+               T w_x1 = x_1+1 - (x[i]-origin_offset);
                result[i] = f_1 * w_x1 +f_2 - f_2*w_x1;
 
             }
