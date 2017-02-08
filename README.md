@@ -28,20 +28,20 @@ The XYZ axes map to the common ijk scheme in linear algebra such that the x-dire
 All function parameters for the lower-dimensional routines are a subset of those for the higher equivalents. Therefore, we choose to document all possible parameters here just once.
 
 T is template placeholder for the type, which in practice is usually double or float
-  - const T* const data -> pointer to real data, potentially multidimensional
-  - const T* const data_r -> pointer to real part of complex data, potentially multidimensional
-  - const T* const data_i -> pointer to imaginary part of complex data, potentially multidimensional
-  - const size_t& nrows -> number of rows in Nd array. This is the size along the x-direction
-  - const size_t& ncols -> number of columns in Nd array. This is the size along the y-direction 
-  - const size_t& nlayers -> number of layers in Nd array. This is the size along the z-direction 
-  - const T* const x -> x coordinates of locations to interpolate
-  - const T* const y -> y coordinates of locations to interpolate
-  - const T* const z -> z coordinates of locations to interpolate
-  - const size_t& N -> number of datapoints to calculate
-  - T* result -> array to store the result of real interpolation
-  - T* result_r -> array to store the real part of the result for complex interpolation 
-  - T* result_i -> array to store the imaginary part of the result for complex interpolation 
-  - const long long& origin_offset -> inputted coordinates will be shifted by this amount to establish 0-based indices, which is useful if splinter is being called from a language like MATLAB that uses 1-based indexing. See MEX functions for examples
+  - `const T* const data` -> pointer to real data, potentially multidimensional
+  - `const T* const data_r` -> pointer to real part of complex data, potentially multidimensional
+  - `const T* const data_i` -> pointer to imaginary part of complex data, potentially multidimensional
+  - `const size_t& nrows` -> number of rows in Nd array. This is the size along the x-direction
+  - `const size_t& ncols` -> number of columns in Nd array. This is the size along the y-direction 
+  - `const size_t& nlayers` -> number of layers in Nd array. This is the size along the z-direction 
+  - `const T* const x` -> x coordinates of locations to interpolate
+  - `const T* const y` -> y coordinates of locations to interpolate
+  - `const T* const z` -> z coordinates of locations to interpolate
+  - `const size_t& N` -> number of datapoints to calculate
+  - `T* result` -> array to store the result of real interpolation
+  - `T* result_r` -> array to store the real part of the result for complex interpolation 
+  - `T* result_i` -> array to store the imaginary part of the result for complex interpolation 
+  - `const long long& origin_offset` -> inputted coordinates will be shifted by this amount to establish 0-based indices, which is useful if splinter is being called from a language like MATLAB that uses 1-based indexing. See MEX functions for examples
   
 ### Calling splinter from MATLAB
 Splinter provides MEX functions splinterp1, splinterp2, and splinterp3 that can be used as a drop-in replacement for MATLAB's interp1, interp2, and interp3 methods with potentially significant performance improvements. For example, the following call
