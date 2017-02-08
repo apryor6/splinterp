@@ -6,6 +6,7 @@
 #include "splinterp.h"
 
 void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
+    if (nrhs != 2) mexErrMsgTxt("Incorrect number of arguments. Syntax is Vq = splinterp1(V,Xq)");
     if (mxIsComplex(prhs[0])){
         double const *Matrix_r; 
         double const *Matrix_i;
@@ -13,13 +14,14 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         double *result_r;
         double *result_i;
         
-        size_t nrows   = mxGetM(prhs[0]);
-        
-        const mwSize ndims  = mxGetNumberOfDimensions(prhs[1]);
-        const mwSize *dims  = mxGetDimensions(prhs[1]);
+        // allow for vectors to be Nx1 or 1xN
+        size_t nrows   = std::max(mxGetM(prhs[0]),mxGetN(prhs[0])); 
+
+        const mwSize ndims_out  = mxGetNumberOfDimensions(prhs[1]);
+        const mwSize *dims_out  = mxGetDimensions(prhs[1]);
         size_t npoints = 1;
-        for (auto i = 0; i < ndims; ++i) npoints*=dims[i];
-        plhs[0] = mxCreateNumericArray(ndims, dims, mxDOUBLE_CLASS, mxCOMPLEX);
+        for (auto i = 0; i < ndims_out; ++i) npoints*=dims_out[i];
+        plhs[0] = mxCreateNumericArray(ndims_out, dims_out, mxDOUBLE_CLASS, mxCOMPLEX);
 
         Matrix_r = mxGetPr(prhs[0]);
         Matrix_i = mxGetPi(prhs[0]);
@@ -34,13 +36,14 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         double const *x;
         double *result;
         
-        size_t nrows   = mxGetM(prhs[0]);
+        // allow for vectors to be Nx1 or 1xN
+        size_t nrows   = std::max(mxGetM(prhs[0]),mxGetN(prhs[0]));
         
-        const mwSize ndims  = mxGetNumberOfDimensions(prhs[1]);
-        const mwSize *dims  = mxGetDimensions(prhs[1]);
+        const mwSize ndims_out  = mxGetNumberOfDimensions(prhs[1]);
+        const mwSize *dims_out  = mxGetDimensions(prhs[1]);
         size_t npoints = 1;
-        for (auto i = 0; i < ndims; ++i) npoints*=dims[i];
-        plhs[0] = mxCreateNumericArray(ndims, dims, mxDOUBLE_CLASS, mxREAL);
+        for (auto i = 0; i < ndims_out; ++i) npoints*=dims_out[i];
+        plhs[0] = mxCreateNumericArray(ndims_out, dims_out, mxDOUBLE_CLASS, mxREAL);
 
         Matrix = mxGetPr(prhs[0]);
         x      = mxGetPr(prhs[1]);

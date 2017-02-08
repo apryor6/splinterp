@@ -6,6 +6,7 @@
 #include "splinterp.h"
 
 void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
+    if (nrhs != 4) mexErrMsgTxt("Incorrect number of arguments. Syntax is Vq = splinterp3(V,Xq,Yq,Zq)");
     if (mxIsComplex(prhs[0])){
         double const *Matrix_r;
         double const *Matrix_i;
@@ -19,8 +20,11 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         const mwSize nrows   = dims[0];
         const mwSize ncols   = dims[1];
         const mwSize nlayers = dims[2];
+        if ( nrows==1 | ncols==1 | nlayers==1 )mexErrMsgTxt("Input data is not 3D.");
+
         const size_t ncols_out = mxGetN(prhs[1]);
         const size_t nrows_out = mxGetM(prhs[1]);
+        
         
         const mwSize ndims_out  = mxGetNumberOfDimensions(prhs[1]);
         const mwSize *dims_out  = mxGetDimensions(prhs[1]);
@@ -47,13 +51,16 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         double const *z;
         double *result;
         
+        const mwSize ndims   = mxGetNumberOfDimensions(prhs[0]);
         const mwSize* dims   = mxGetDimensions(prhs[0]);
         const mwSize nrows   = dims[0];
         const mwSize ncols   = dims[1];
         const mwSize nlayers = dims[2];
+        if ( nrows==1 | ncols==1 | nlayers==1 )mexErrMsgTxt("Input data is not 3D.");
+        
         const size_t ncols_out = mxGetN(prhs[1]);
         const size_t nrows_out = mxGetM(prhs[1]);
-
+        
         const mwSize ndims_out  = mxGetNumberOfDimensions(prhs[1]);
         const mwSize *dims_out  = mxGetDimensions(prhs[1]);
         size_t npoints = 1;
