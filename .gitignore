@@ -10,3 +10,5 @@ test.cpp
 test.m
 .DS_Store
 *.swap
+*.swp
+test
