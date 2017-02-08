@@ -43,13 +43,21 @@ T is template placeholder for the type, which in practice is usually double or f
 ### Calling splinter from MATLAB
 Splinter provides MEX functions splinterp1, splinterp2, and splinterp3 that can be used as a drop-in replacement for MATLAB's interp1, interp2, and interp3 methods with potentially significant performance improvements. For example, the following call
 
-`Vq = interp2(V,Xq,Xq)`
+`Vq = interp2(V,Xq,Yq)`
 
 can be replaced by
 
-`Vq = splinterp2(V,Xq,Xq)`
+`Vq = splinterp2(V,Xq,Yq)`
 
-Note that splinter assumes the coordinates of the data are an integer grid and thus does not support the X, Y, Z parameters to the MATLAB equivalents.
+**Note that splinter assumes the coordinates of the data are an integer grid and thus does not support the X, Y, Z parameters to the MATLAB equivalents.** Therefore, only the following function calls are supported: 
+
+`Vq = splinterp1(V1,Xq)`  
+
+`Vq = splinterp2(V2,Xq,Yq)`  
+
+`Vq = splinterp3(V3,Xq,Yq,Zq)`  
+
+Where `V1`,`V2`, and `V3` are 1,2, and 3D arrays, respectively.  
 
 To use these functions, simply download the code and compile by running `compile_mex_script.m`. If you receive a "MEX completed successfully", then the splinterp functions are now accessible from within MATLAB (you may need to add the directory where they exist to your path). If you have not used MEX before, you may need to run `mex -setup` first to configure your C compiler. More information can be foud [here](https://www.mathworks.com/help/matlab/ref/mex.html) if you run into trouble.
 
