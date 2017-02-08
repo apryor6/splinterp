@@ -9,7 +9,6 @@
 #include <cmath>
 #include <thread>
 #include <vector>
-//#include "mex.h"
 
 #ifndef NUM_THREADS
 #define NUM_THREADS 6
@@ -355,8 +354,9 @@ namespace splinterp{
         for (auto i = 0; i < N; ++i) { 
            // get coordinates of bounding grid locations
            long long x_1 = (long long) std::floor(x[i]) - origin_offset;
+           
            // handle special case where x is the last element
-           if (x[i] == (nrows-1)){x_1 -= 1;}
+           if ( (x[i] - origin_offset) == (nrows-1)){;x_1 -= 1;}
            // return 0 for target values that are out of bounds
               if (x_1 < 0 | (x_1+1) > (nrows - 1)){
                 result[i] = 0; 
@@ -383,7 +383,7 @@ namespace splinterp{
            // get coordinates of bounding grid locations
            long long x_1 = ( long long) std::floor(x[i]) - origin_offset;
            // handle special case where x is the last element
-           if (x[i] == (nrows-1)){x_1 -= 1;}
+           if ( (x[i] - origin_offset) == (nrows-1)){x_1 -= 1;}
            // return 0 for target values that are out of bounds
               if (x_1 < 0 | (x_1+1) > (nrows - 1)){
                 result_r[i] = 0;
@@ -421,8 +421,8 @@ namespace splinterp{
            long long y_2 = y_1 + 1;
 
            // handle special case where x/y is the last element
-           if (x[i] == (nrows-1) )   { x_2 -= 1; x_1 -= 1;}
-           if (y[i] == (ncols-1) )   { y_2 -= 1; y_1 -= 1;}
+           if ( (x[i] - origin_offset) == (nrows-1) )   { x_2 -= 1; x_1 -= 1;}
+           if ( (y[i] - origin_offset) == (ncols-1) )   { y_2 -= 1; y_1 -= 1;}
 
            // return 0 for target values that are out of bounds
            if (x_1 < 0 | x_2 > (nrows - 1) |  y_1 < 0 | y_2 > (ncols - 1)){
@@ -468,8 +468,8 @@ namespace splinterp{
            long long y_2 = y_1 + 1;
           
            // handle special case where x/y is the last element
-           if (x[i] == (nrows-1) )   { x_2 -= 1; x_1 -= 1;}
-           if (y[i] == (ncols-1) )   { y_2 -= 1; y_1 -= 1;}
+           if ( (x[i] - origin_offset) == (nrows-1) )   { x_2 -= 1; x_1 -= 1;}
+           if ( (y[i] - origin_offset) == (ncols-1) )   { y_2 -= 1; y_1 -= 1;}
 
            // return 0 for target values that are out of bounds
            if (x_1 < 0 | x_2 > (nrows - 1) |  y_1 < 0 | y_2 > (ncols -1)){
@@ -527,9 +527,9 @@ namespace splinterp{
             long long z_2 = z_1 + 1;
 
             // handle special case where x,x, or z is the last element
-            if (x[i] == (nrows-1) )   { x_2 -= 1; x_1 -= 1;}
-            if (y[i] == (ncols-1) )   { y_2 -= 1; y_1 -= 1;}
-            if (z[i] == (nlayers-1) ) { z_2 -= 1; z_1 -= 1;}
+            if ( (x[i] - origin_offset) == (nrows-1) )   { x_2 -= 1; x_1 -= 1;}
+            if ( (y[i] - origin_offset) == (ncols-1) )   { y_2 -= 1; y_1 -= 1;}
+            if ( (z[i] - origin_offset) == (nlayers-1) ) { z_2 -= 1; z_1 -= 1;}
 
             // return 0 for target values that are out of bounds
             if (x_1 < 0 | x_2 > (nrows - 1) |  y_1 < 0 | y_2 > (ncols - 1) | z_1 < 0 | z_2 > (nlayers - 1)){
@@ -605,9 +605,9 @@ namespace splinterp{
             long long z_2 = z_1 + 1;
             
             // handle special case where x, y, or z is the last element
-            if (x[i] == (nrows-1) )   { x_2 -= 1; x_1 -= 1;}
-            if (y[i] == (ncols-1) )   { y_2 -= 1; y_1 -= 1;}
-            if (z[i] == (nlayers-1) ) { z_2 -= 1; z_1 -= 1;}
+            if ( (x[i] - origin_offset) == (nrows-1) )   { x_2 -= 1; x_1 -= 1;}
+            if ( (y[i] - origin_offset) == (ncols-1) )   { y_2 -= 1; y_1 -= 1;}
+            if ( (z[i] - origin_offset) == (nlayers-1) ) { z_2 -= 1; z_1 -= 1;}
 
             // return 0 for target values that are out of bounds
             if (x_1 < 0 | x_2 > (nrows - 1) |  y_1 < 0 | y_2 > (ncols - 1) | z_1 < 0 | z_2 > (nlayers - 1)){
