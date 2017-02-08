@@ -50,6 +50,7 @@ T is template placeholder for the type, which in practice is usually double or f
   - `const long long& origin_offset` -> inputted coordinates will be shifted by this amount to establish 0-based indices, which is useful if splinterp is being called from a language like MATLAB that uses 1-based indexing. See MEX functions for examples
   
 ### Calling splinterp from MATLAB
+*Currently only double precision is supported in MATLAB. If you pass single precision to splinterp you will likely crash MATLAB. I will implement a solution that tolerates both in the near future. After all, that's the whole point of writing templates.*
 Splinterp provides MEX functions splinterp1, splinterp2, and splinterp3 that can be used as a drop-in replacement for MATLAB's interp1, interp2, and interp3 methods with potentially significant performance improvements. For example, the following call
 
 `Vq = interp2(V,Xq,Yq)`
