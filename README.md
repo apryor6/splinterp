@@ -3,11 +3,13 @@
 Splinterp is a fast C++ template library for parallel calculation of linear, bilinear, and trilinear interpolation from data sampled on an integer grid. Splinter also contains MEX extension files that allow its routines to be called from MATLAB/Octave. A blog post about creating splinterp can be found [here](http://alanpryorjr.com/image/splinter/).
 
 ### Usage
-Splinterp (Strided Parallel Linear INTERPolation) consists of a single header file, `splinterp.h`, which contains a number of different functions for various types of linear interpolation. Linear interpolation is a method of calculating values from sampled data at positions that lie in between existing samples. The following is a visualization of binary linear interpolation courtesy of Wikipedia. 
+Linear interpolation is a method of calculating values from sampled data at positions that lie in between existing samples. The following is a visualization of binary linear interpolation courtesy of Wikipedia. 
 
 ![Visualization of binary interpolation courtesy of Wikipedia](https://upload.wikimedia.org/wikipedia/commons/e/ea/BilinearInterpolation.svg) 
 
-Each interpolation function in spinter has a name of the form `interp#[\_cx][\_F]` where # is either 1,2, or 3, indicating linear, bilinear, or trilinear interpolation, respectively. The addition of "`_cx`" indicates that it is intended for complex-valued inputs. The addition of `_F` indicate the arrays are assumed to be in column-major (Fortran) order. (TODO: implement C-style versions for row-major arrays). There are also a number of helper functions for running interpolation schemes in parallel, and the number of threads used is determined by the NUM_THREADS macro. To use a different number of threads, either edit this value in `splinterp.h` and recompile, or alternatively you can define the value with the -D flag for g++. For example a simple test program
+Splinterp (Strided Parallel Linear INTERPolation) consists of a single header file, `splinterp.h`, which contains a number of different functions for various types of linear interpolation. 
+
+Each interpolation function in splinterp has a name of the form `interp#[\_cx][\_F]` where # is either 1,2, or 3, indicating linear, bilinear, or trilinear interpolation, respectively. The addition of "`_cx`" indicates that it is intended for complex-valued inputs. The addition of `_F` indicate the arrays are assumed to be in column-major (Fortran) order. (TODO: implement C-style versions for row-major arrays). There are also a number of helper functions for running interpolation schemes in parallel, and the number of threads used is determined by the NUM_THREADS macro. To use a different number of threads, either edit this value in `splinterp.h` and recompile, or alternatively you can define the value with the -D flag for g++. For example a simple test program
 ~~~ c++
 // test.cpp
 #include "splinterp.h"
