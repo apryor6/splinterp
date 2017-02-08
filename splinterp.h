@@ -9,7 +9,7 @@
 #include <cmath>
 #include <thread>
 #include <vector>
-#include "mex.h"
+//#include "mex.h"
 
 #ifndef NUM_THREADS
 #define NUM_THREADS 4

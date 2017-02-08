@@ -6,3 +6,5 @@ bench3.m
 *.log*
 *~
 *.csv
+test.cpp
+test.m
