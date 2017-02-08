@@ -24,10 +24,10 @@ namespace splinter{
     
     template <typename T>
     using func1D = void(*)(const T* const, 
-                         const size_t&,
-                         const T* const,
-                         const size_t&, T*,
-                         const long long&);
+                           const size_t&,
+                           const T* const,
+                           const size_t&, T*,
+                           const long long&);
     
     template <typename T>
     void parallel_interp1(func1D<T> f, 
@@ -69,21 +69,21 @@ namespace splinter{
      
     template <typename T>
     using func1D_cx = void(*)(const T* const, const T* const,
-                         const size_t&,
-                         const T* const,
-                         const size_t&, T*, T*,
-                         const long long&);
+                              const size_t&,
+                              const T* const,
+                              const size_t&, T*, T*,
+                              const long long&);
 
     template <typename T>
     void parallel_interp1_cx(func1D_cx<T> f, 
-                          const T* const data_r, 
-                          const T* const data_i,
-                          const size_t& nrows,
-                          const T* const x,
-                          const size_t& N, 
-                          T* result_r,
-                          T* result_i,
-                          const long long& origin_offset){
+                             const T* const data_r, 
+                             const T* const data_i,
+                             const size_t& nrows,
+                             const T* const x,
+                             const size_t& N, 
+                             T* result_r,
+                             T* result_i,
+                             const long long& origin_offset){
 
         if ( N <= SERIAL_LIMIT){// for small numbers of elements just use 1 thread
             f(data_r,data_i,nrows,x,N,result_r,result_i,origin_offset);
@@ -227,14 +227,14 @@ namespace splinter{
 
     template <typename T>
     using func3D = void(*)(const T* const, 
-                         const size_t&,
-                         const size_t&,
-                         const size_t&,
-                         const T* const,
-                         const T* const,
-                         const T* const,
-                         const size_t&, T*,
-                         const long long&);
+                           const size_t&,
+                           const size_t&,
+                           const size_t&,
+                           const T* const,
+                           const T* const,
+                           const T* const,
+                           const size_t&, T*,
+                           const long long&);
     
     template <typename T>
     void parallel_interp3(func3D<T> f, 
