@@ -18,6 +18,9 @@ can be compiled to use splinter with 16 threads with a command like so
 
 `g++ test.cpp -I /path/to/splinter/ -D NUM_THREADS=12`
 
+### Options
+Two options can currently be adjusted in splinter, both are defined as macros at the top of `splinter.h` and can either be set by editing this file and recompiling or alternatively at compilation time with the -D flag. `NUM_THREADS` is the number of threads that will be spawned by the multithreaded routines. It is recommended that you do not set this value higher than twice the number of cores you have, as running more threads will just incur unnecessary overhead. `SERIAL_LIMIT` is the number of elements for parameter `N` below which only a single thread will be launched. Depending upon your hardware and OS, you may get better performance by adjusting one or both of these parameters, but the basic tradeoff is that as long as there is enough work to do to justify the overhead time of spawning the threads then completing the job concurrently should be faster.
+
 ### Conventions
 The XYZ axes map to the common ijk scheme in linear algebra such that the x-direction runs along the rows, y along the columns, and z along the depth. Complex arrays are to be provided as two separate arrays, one representing the real part and another representing imaginary, rather than interleaved complex format such as in `std::complex`. Similarly, complex results are stored as separate real and imaginary parts.
 
