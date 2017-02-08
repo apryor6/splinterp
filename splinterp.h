@@ -1,9 +1,9 @@
-/// -- splinter.h --
+/// -- splinterp.h --
 // Created by AJ Pryor on 2/2/17.
 //
 
-#ifndef SPLINTER_H
-#define SPLINTER_H
+#ifndef SPLINTERP_H
+#define SPLINTERP_H
 
 
 #include <cmath>
@@ -20,7 +20,7 @@
 #endif
 // Interpolate position x,y from 2D array stored in data, which is assumed to lie on an integer coordinate system.
 // Values of x and y that lie outside of the dimensions of data are set to 0.
-namespace splinter{
+namespace splinterp{
     
     template <typename T>
     using func1D = void(*)(const T* const, 
@@ -702,4 +702,4 @@ namespace splinter{
         }
     }
 }
-#endif //SPLINTER_H
+#endif //SPLINTERP_H

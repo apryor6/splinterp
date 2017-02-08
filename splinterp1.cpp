@@ -3,7 +3,7 @@
 //
 #include <vector>
 #include "mex.h"
-#include "splinter.h"
+#include "splinterp.h"
 
 void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
     if (mxIsComplex(prhs[0])){
@@ -27,7 +27,7 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         result_r = mxGetPr(plhs[0]);
         result_i = mxGetPi(plhs[0]);
         
-        splinter::parallel_interp1_cx(splinter::interp1_F_cx<double>, Matrix_r,Matrix_i, nrows, x, npoints, result_r, result_i, 1);
+        splinterp::parallel_interp1_cx(splinterp::interp1_F_cx<double>, Matrix_r,Matrix_i, nrows, x, npoints, result_r, result_i, 1);
 
     } else {
         double const *Matrix; 
@@ -46,7 +46,7 @@ void mexFunction(int nlhs, mxArray *plhs[],int nrhs, const mxArray *prhs[]) {
         x      = mxGetPr(prhs[1]);
         result = mxGetPr(plhs[0]);
         
-        splinter::parallel_interp1(splinter::interp1_F<double>, Matrix, nrows, x, npoints, result, 1);
+        splinterp::parallel_interp1(splinterp::interp1_F<double>, Matrix, nrows, x, npoints, result, 1);
 
     }
 }
