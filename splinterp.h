@@ -15,8 +15,13 @@
 #define NUM_THREADS 6
 #endif
 #ifndef SERIAL_LIMIT
+<<<<<<< HEAD
 #define SERIAL_LIMIT 4093
 //16383
+=======
+#define SERIAL_LIMIT 16383
+
+>>>>>>> fc5dc629c78771b737d50743c5db9d46c4b68d34
 #endif
 // Interpolate position x,y from 2D array stored in data, which is assumed to lie on an integer coordinate system.
 // Values of x and y that lie outside of the dimensions of data are set to 0.

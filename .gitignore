@@ -1,4 +1,5 @@
 *mexmac*
+bench3.m
 *mexa*
 *.log*
 *~
@@ -8,6 +9,7 @@ test.m
 .DS_Store
 *.swap
 *.swp
+test*
 test*.m
 test*.cpp
 .Rhistory
