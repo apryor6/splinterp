@@ -8,5 +8,6 @@ test.m
 .DS_Store
 *.swap
 *.swp
-test
+test*.m
+test*.cpp
 .Rhistory
