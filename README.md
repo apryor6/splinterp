@@ -1,6 +1,6 @@
 
 # splinterp
-Splinterp is a fast C++ template library for parallel calculation of linear, bilinear, and trilinear interpolation from data sampled on an integer grid. Splinter also contains MEX extension files that allow its routines to be called from MATLAB/Octave. A blog post about creating splinterp can be found [here](http://alanpryorjr.com/image/splinter/).
+Splinterp is a fast C++ template library for parallel calculation of linear, bilinear, and trilinear interpolation from data sampled on an integer grid. Splinterp also contains MEX extension files that allow its routines to be called from MATLAB/Octave. A blog post about creating splinterp can be found [here](http://alanpryorjr.com/image/splinter/).
 
 
 Linear interpolation is a method of calculating values from sampled data at positions that lie in between existing samples. The following is a visualization of binary linear interpolation courtesy of Wikipedia. 
