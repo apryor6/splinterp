@@ -22,7 +22,7 @@ return 0;
 
 can be compiled to use splinterp with 16 threads with a command like so  
 
-`g++ test.cpp -I /path/to/splinterp/ -D NUM_THREADS=12`
+`g++ test.cpp -I /path/to/splinterp/ -D NUM_THREADS=16`
 
 ### Options
 Two options can currently be adjusted in splinterp, both are defined as macros at the top of `splinter.h` and can either be set by editing this file and recompiling or alternatively at compilation time with the -D flag. `NUM_THREADS` is the number of threads that will be spawned by the multithreaded routines. It is recommended that you do not set this value higher than twice the number of cores you have, as running more threads will just incur unnecessary overhead. `SERIAL_LIMIT` is the number of elements for parameter `N` below which only a single thread will be launched. Depending upon your hardware and OS, you may get better performance by adjusting one or both of these parameters, but the basic tradeoff is that as long as there is enough work to do to justify the overhead time of spawning the threads then completing the job concurrently should be faster.
