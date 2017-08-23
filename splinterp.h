@@ -414,39 +414,37 @@ namespace splinterp{
 
         for (auto i = 0; i < N; ++i) {
 
-           // get coordinates of bounding grid locations
-           long long x_1 = ( long long) std::floor(x[i]) - origin_offset;
-           long long x_2 = x_1 + 1;
-           long long y_1 = ( long long) std::floor(y[i]) - origin_offset;
-           long long y_2 = y_1 + 1;
+            // get coordinates of corner location
+            long long x_1 = static_cast<long long>(x[i]) - origin_offset;
+            long long y_1 = static_cast<long long>(y[i]) - origin_offset;
 
            // handle special case where x/y is the last element
-           if ( (x[i] - origin_offset) == (nrows-1) )   { x_2 -= 1; x_1 -= 1;}
-           if ( (y[i] - origin_offset) == (ncols-1) )   { y_2 -= 1; y_1 -= 1;}
+            if (x_1 == (nrows - 1) && (x[i] - origin_offset) == (nrows - 1)) {
+                x_1 -= 1;
+            }
+            if (y_1 == (ncols - 1) && (y[i] - origin_offset) == (ncols - 1)) {
+                y_1 -= 1;
+            }
 
            // return 0 for target values that are out of bounds
-           if (x_1 < 0 | x_2 > (nrows - 1) |  y_1 < 0 | y_2 > (ncols - 1)){
+            if (x_1 < 0 || x_1 > (nrows - 2) ||  y_1 < 0 || y_1 > (ncols - 2)) {
                 result[i] = 0;
-
-            } 
+            }
             else {
-                
                 // get the array values
-                const T& f_11 = data[x_1 + y_1*nrows];
-                const T& f_12 = data[x_1 + y_2*nrows];
-                const T& f_21 = data[x_2 + y_1*nrows];
-                const T& f_22 = data[x_2 + y_2*nrows];
+                long long idx_11 = y_1 * nrows + x_1;
+                T f_11 = data[idx_11];
+                T f_21 = data[idx_11 + 1];
+                T f_12 = data[idx_11 + nrows];
+                T f_22 = data[idx_11 + nrows + 1];
 
                 // compute weights
-                T w_x1 = x_2 - (x[i] - origin_offset);
-                T w_x2 = (x[i] - origin_offset) - x_1;
-                T w_y1 = y_2 - (y[i] - origin_offset);
-                T w_y2 = (y[i] - origin_offset) - y_1;
+                T w_x = x[i] - (x_1 + origin_offset);
+                T a = w_x * (f_21 - f_11) + f_11;
+                T b = w_x * (f_22 - f_12) + f_12;
 
-                T a,b;
-                a = f_11 * w_x1 + f_21 * w_x2;
-                b = f_12 * w_x1 + f_22 * w_x2;
-                result[i] = a * w_y1 + b * w_y2;
+                T w_y = y[i] - (y_1 + origin_offset);
+                result[i] = w_y * (b - a) + a;
             }
         }
     }
