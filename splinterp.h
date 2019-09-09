@@ -1,6 +1,6 @@
 /// -- splinterp.h --
 // Created by AJ Pryor on 2/2/17.
-//
+// C-style array support for 2D interp added by DL Elliott 09/2019
 
 #ifndef SPLINTERP_H
 #define SPLINTERP_H
@@ -451,6 +451,53 @@ namespace splinterp{
         }
     }
 
+	// NOTE: x and y are swapped in C version.  x is columns, y is rows
+	// NOTE: for best performance, provide x,y arrays of positions in row-major order
+	template <typename T>
+	void interp2_C(const T* const data,
+		const size_t& nrows, const size_t& ncols,
+		const T* const x, const T* const y,
+		const size_t& N, T* result,
+		const long long& origin_offset = 0) {
+
+		for (auto i = 0; i < N; ++i) {
+
+			// get coordinates of bounding grid locations
+			long long x_1 = (long long)std::floor(x[i]) - origin_offset;
+			long long x_2 = x_1 + 1;
+			long long y_1 = (long long)std::floor(y[i]) - origin_offset;
+			long long y_2 = y_1 + 1;
+
+			// handle special case where x/y is the last element
+			if ((x[i] - origin_offset) == (ncols - 1)) { x_2 -= 1; x_1 -= 1; }
+			if ((y[i] - origin_offset) == (nrows - 1)) { y_2 -= 1; y_1 -= 1; }
+
+			// return 0 for target values that are out of bounds
+			if (x_1 < 0 | x_2 > (ncols - 1) | y_1 < 0 | y_2 > (nrows - 1)) {
+				result[i] = 0;
+
+			}
+			else {
+
+				// get the array values
+				const T& f_11 = data[x_1 + y_1 * ncols];
+				const T& f_12 = data[x_1 + y_2 * ncols];
+				const T& f_21 = data[x_2 + y_1 * ncols];
+				const T& f_22 = data[x_2 + y_2 * ncols];
+
+				// compute weights
+				T w_x1 = x_2 - (x[i] - origin_offset);
+				T w_x2 = (x[i] - origin_offset) - x_1;
+				T w_y1 = y_2 - (y[i] - origin_offset);
+				T w_y2 = (y[i] - origin_offset) - y_1;
+
+				T a, b;
+				a = f_11 * w_x1 + f_21 * w_x2;
+				b = f_12 * w_x1 + f_22 * w_x2;
+				result[i] = a * w_y1 + b * w_y2;
+			}
+		}
+	}
 
     template <typename T>
     void interp2_F_cx(const T* const data_r, const T* const data_i,
@@ -507,6 +554,81 @@ namespace splinterp{
         }
     }
 
+	template <typename T>
+	void interp3_C(const T* data,
+		const size_t& nrows, const size_t& ncols, const size_t& nlayers,
+		const T* x, const T* y, const T* z,
+		const size_t& N, T* result,
+		const long long& origin_offset = 0) {
+
+		// Assumes C style ordering for data
+		for (auto i = 0; i < N; ++i) {
+
+			// get coordinates of bounding grid locations
+			long long x_1 = (long long)std::floor(x[i]) - origin_offset;
+			long long x_2 = x_1 + 1;
+			long long y_1 = (long long)std::floor(y[i]) - origin_offset;
+			long long y_2 = y_1 + 1;
+			long long z_1 = (long long)std::floor(z[i]) - origin_offset;
+			long long z_2 = z_1 + 1;
+
+			// handle special case where x, y, or z is the last element
+			if ((x[i] - origin_offset) == (ncols - 1)) { x_2 -= 1; x_1 -= 1; }
+			if ((y[i] - origin_offset) == (nrows - 1)) { y_2 -= 1; y_1 -= 1; }
+			if ((z[i] - origin_offset) == (nlayers - 1)) { z_2 -= 1; z_1 -= 1; }
+
+			// return 0 for target values that are out of bounds
+			if (x_1 < 0 || x_2 > (ncols - 1) || y_1 < 0 || y_2 > (nrows - 1) || z_1 < 0 || z_2 > (nlayers - 1)) {
+				result[i] = 0;
+			}
+			else {
+
+				// precompute some stride-related constants that are reused
+				const size_t layer_size = ncols * nrows;
+				auto z_stride = z_1 * layer_size;
+				auto y_1_stride = y_1 * ncols;
+				auto y_2_stride = y_2 * ncols;
+
+				// get the array values for the lower z slice
+				const T& f_11_1 = data[z_stride + y_1_stride + x_1];
+				const T& f_12_1 = data[z_stride + y_2_stride + x_1];
+				const T& f_21_1 = data[z_stride + y_1_stride + x_2];
+				const T& f_22_1 = data[z_stride + y_2_stride + x_2];
+
+				// compute weights
+				T w_x1 = x_2 - (x[i] - origin_offset);
+				T w_x2 = (x[i] - origin_offset) - x_1;
+				T w_y1 = y_2 - (y[i] - origin_offset);
+				T w_y2 = (y[i] - origin_offset) - y_1;
+
+				T a_1, b_1;
+				a_1 = f_11_1 * w_x1 + f_21_1 * w_x2;
+				b_1 = f_12_1 * w_x1 + f_22_1 * w_x2;
+
+				const T F_1 = a_1 * w_y1 + b_1 * w_y2;
+
+				// update some stride-related constants that are reused
+				z_stride = z_2 * layer_size;
+
+				// get the array values for the upper z slice
+				const T& f_11_2 = data[z_stride + y_1_stride + x_1];
+				const T& f_12_2 = data[z_stride + y_2_stride + x_1];
+				const T& f_21_2 = data[z_stride + y_1_stride + x_2];
+				const T& f_22_2 = data[z_stride + y_2_stride + x_2];
+
+				T a_2, b_2;
+				a_2 = f_11_2 * w_x1 + f_21_2 * w_x2;
+				b_2 = f_12_2 * w_x1 + f_22_2 * w_x2;
+
+				const T F_2 = a_2 * w_y1 + b_2 * w_y2;
+
+				T w_z1 = z_2 - (z[i] - origin_offset);
+				T w_z2 = (z[i] - origin_offset) - z_1;
+
+				result[i] = F_1 * w_z1 + F_2 * w_z2;
+			}
+		}
+	}
 
     template <typename T>
     void interp3_F(const T* data, 
